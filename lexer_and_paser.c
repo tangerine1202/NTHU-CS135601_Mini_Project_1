@@ -8,6 +8,8 @@ TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
 
+/* ---------- Lexer & parser ---------- */
+
 int sbcount = 0;
 int getval(void)
 {
@@ -166,6 +168,23 @@ TokenSet getToken(void)
     }
 }
 
+void advance(void)
+{
+    lookahead = getToken();
+}
+
+int match(TokenSet token)
+{
+    if (lookahead == UNKNOWN)
+        advance();
+    return token == lookahead;
+}
+
+char *getLexeme(void)
+{
+    return lexeme;
+}
+
 /* factor := INT | ID | ID ASSIGN expr | ADD_SUB INT | ADD_SUB ID | LPAREN expr RPAREN */
 BTNode *factor(void)
 {
@@ -307,23 +326,6 @@ BTNode *expr_tail(BTNode *left)
     }
     else
         return left;
-}
-
-void advance(void)
-{
-    lookahead = getToken();
-}
-
-int match(TokenSet token)
-{
-    if (lookahead == UNKNOWN)
-        advance();
-    return token == lookahead;
-}
-
-char *getLexeme(void)
-{
-    return lexeme;
 }
 
 /* statement := END | expr END */
