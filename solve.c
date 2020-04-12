@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "header.h"
+#include "code_gen.h"
 
 int main(void)
 {
@@ -29,8 +30,6 @@ int evaluateTree(BTNode *root)
         case INT:
             retval = root->val;
             break;
-
-            // TODO: deal with `case ORANDXOR` in `evaluateTree()`
 
         case ASSIGN:
         case ADDSUB:
@@ -60,4 +59,26 @@ int evaluateTree(BTNode *root)
         }
     }
     return retval;
+}
+
+/* print a tree by pre-order. */
+void printPrefix(BTNode *root)
+{
+    if (root != NULL)
+    {
+        printf("%s ", root->lexeme);
+        printPrefix(root->left);
+        printPrefix(root->right);
+    }
+}
+
+/* clean a tree.*/
+void freeTree(BTNode *root)
+{
+    if (root != NULL)
+    {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
 }

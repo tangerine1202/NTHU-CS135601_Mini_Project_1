@@ -3,14 +3,15 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "header.h"
+#include "code_gen.h"
 
 TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
+int sbcount = 0;
 
 /* ---------- Lexer & parser ---------- */
 
-int sbcount = 0;
 int getval(void)
 {
     int i, retval, found;
@@ -349,10 +350,14 @@ void statement(void)
         retp = expr();
         if (match(END))
         {
-
+            // TODO: seperate out `evaluate` and `code generate` parts
             printf("%d\n", evaluateTree(retp));
             printPrefix(retp);
             printf("\n");
+
+            printf("Code Generate:\n");
+            init_reg();
+            codeGenerate(retp);
             freeTree(retp);
 
             advance();
@@ -381,26 +386,4 @@ void error(ErrorType errorNum)
         break;
     }
     exit(0);
-}
-
-/* print a tree by pre-order. */
-void printPrefix(BTNode *root)
-{
-    if (root != NULL)
-    {
-        printf("%s ", root->lexeme);
-        printPrefix(root->left);
-        printPrefix(root->right);
-    }
-}
-
-/* clean a tree.*/
-void freeTree(BTNode *root)
-{
-    if (root != NULL)
-    {
-        freeTree(root->left);
-        freeTree(root->right);
-        free(root);
-    }
 }

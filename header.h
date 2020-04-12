@@ -62,8 +62,10 @@ typedef struct _Node
     struct _Node *left, *right;
 } BTNode;
 
-// TokenSet lookahead = UNKNOWN;
-// char lexeme[MAXLEN];
+extern TokenSet lookahead; // = UNKNOWN;
+extern char lexeme[MAXLEN];
+extern Symbol sbtable[TBLSIZE];
+extern int sbcount;
 
 BTNode *factor(void);
 BTNode *term(void);
