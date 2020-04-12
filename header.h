@@ -23,6 +23,7 @@ everything is an expression
 */
 
 #define MAXLEN 256
+#define TBLSIZE 64
 
 typedef enum
 {
@@ -46,6 +47,12 @@ typedef enum
     RPAREN,
     ENDFILE
 } TokenSet;
+
+typedef struct
+{
+    char name[MAXLEN];
+    int val;
+} Symbol;
 
 typedef struct _Node
 {

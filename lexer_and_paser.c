@@ -6,30 +6,61 @@
 
 TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
+Symbol table[TBLSIZE];
 
+int symbolcnt = 0;
 int getval(void)
 {
+    int i, retval, found;
+
     if (match(INT))
-    {
-        int ndigit = strlen(lexeme);
-        int ret = 0;
-        for (int i = 0; i < ndigit; i++)
-        {
-            ret *= 10;
-            ret += lexeme[i] - '0';
-        }
-        return ret;
-    }
+        retval = atoi(getLexeme());
     else if (match(ID))
     {
-        // TODO: return val in ID
+        i = 0;
+        found = 0;
+        retval = 0;
+        while (i < symbolcnt && !found)
+        {
+            if (strcmp(getLexeme(), table[i].name) == 0)
+            {
+                retval = table[i].val;
+                found = 1;
+                break;
+            }
+            else
+                i++;
+        }
+        if (!found)
+        {
+            if (symbolcnt < TBLSIZE)
+            {
+                strcpy(table[symbolcnt].name, getLexeme());
+                table[symbolcnt].val = 0;
+                symbolcnt++;
+            }
+            else
+                error(RUNOUT);
+        }
     }
+    return retval;
 }
-
-// TODO: set value of variable(named `*str`) to val
 int setval(char *str, int val)
 {
-    return 0;
+    int i, retval;
+    i = 0;
+    while (i < symbolcnt)
+    {
+        if (strcmp(str, table[i].name) == 0)
+        {
+            table[i].val = val;
+            retval = val;
+            break;
+        }
+        else
+            i++;
+    }
+    return retval;
 }
 
 /* create a node without any child.*/
