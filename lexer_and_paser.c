@@ -6,9 +6,9 @@
 
 TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
-Symbol table[TBLSIZE];
+Symbol sbtable[TBLSIZE];
 
-int symbolcnt = 0;
+int sbcount = 0;
 int getval(void)
 {
     int i, retval, found;
@@ -20,11 +20,11 @@ int getval(void)
         i = 0;
         found = 0;
         retval = 0;
-        while (i < symbolcnt && !found)
+        while (i < sbcount && !found)
         {
-            if (strcmp(getLexeme(), table[i].name) == 0)
+            if (strcmp(getLexeme(), sbtable[i].name) == 0)
             {
-                retval = table[i].val;
+                retval = sbtable[i].val;
                 found = 1;
                 break;
             }
@@ -33,11 +33,11 @@ int getval(void)
         }
         if (!found)
         {
-            if (symbolcnt < TBLSIZE)
+            if (sbcount < TBLSIZE)
             {
-                strcpy(table[symbolcnt].name, getLexeme());
-                table[symbolcnt].val = 0;
-                symbolcnt++;
+                strcpy(sbtable[sbcount].name, getLexeme());
+                sbtable[sbcount].val = 0;
+                sbcount++;
             }
             else
                 error(RUNOUT);
@@ -45,15 +45,16 @@ int getval(void)
     }
     return retval;
 }
+
 int setval(char *str, int val)
 {
     int i, retval;
     i = 0;
-    while (i < symbolcnt)
+    while (i < sbcount)
     {
-        if (strcmp(str, table[i].name) == 0)
+        if (strcmp(str, sbtable[i].name) == 0)
         {
-            table[i].val = val;
+            sbtable[i].val = val;
             retval = val;
             break;
         }
@@ -356,6 +357,7 @@ void statement(void)
         }
     }
 }
+
 void error(ErrorType errorNum)
 {
     switch (errorNum)
