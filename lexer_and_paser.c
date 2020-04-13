@@ -73,9 +73,24 @@ BTNode *makeNode(TokenSet tok, const char *lexe)
     strcpy(node->lexeme, lexe);
     node->data = tok;
     node->val = 0;
+    node->weight = 1;
     node->left = NULL;
     node->right = NULL;
     return node;
+}
+
+void updateNodeWeight(BTNode *node)
+{
+    int lw, rw;
+    if (node->left == NULL)
+        lw = 0;
+    else
+        lw = node->left->weight;
+    if (node->right == NULL)
+        rw = 0;
+    else
+        rw = node->right->weight;
+    node->weight = lw + 1 + rw;
 }
 
 TokenSet getToken(void)
@@ -209,6 +224,7 @@ BTNode *factor(void)
             advance();
             retp->left = left;
             retp->right = expr();
+            updateNodeWeight(retp);
         }
         else
         {
@@ -229,6 +245,7 @@ BTNode *factor(void)
             retp->right->val = getval();
             retp->left = makeNode(INT, "0");
             retp->left->val = 0;
+            updateNodeWeight(retp);
             advance();
         }
         else
@@ -244,6 +261,7 @@ BTNode *factor(void)
     {
         advance();
         retp = expr();
+        // updateNodeWeight(retp); //FIXME: necessary? i don't think so
         if (match(RPAREN))
         {
             advance();
@@ -282,6 +300,7 @@ BTNode *term_tail(BTNode *left)
 
         node->left = left;
         node->right = factor();
+        updateNodeWeight(node);
 
         return term_tail(node);
     }
@@ -311,6 +330,7 @@ BTNode *expr_tail(BTNode *left)
 
         node->left = left;
         node->right = term();
+        updateNodeWeight(node);
 
         return expr_tail(node);
     }
@@ -321,6 +341,7 @@ BTNode *expr_tail(BTNode *left)
 
         node->left = left;
         node->right = term();
+        updateNodeWeight(node);
 
         return expr_tail(node);
     }

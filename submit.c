@@ -22,6 +22,10 @@ typedef enum
     REG_RUNOUT,
     DIV_BY_ZERO,
     VAR_UNASSIGNED,
+    CANT_GET_ADDR,
+    UNEXPECT_TOKENTYPE,
+    WRONG_ADDR,
+    TESTING,
 } ErrorType;
 
 typedef enum
@@ -51,6 +55,7 @@ typedef struct _Node
     char lexeme[MAXLEN];
     TokenSet data;
     int val;
+    int weight;
     struct _Node *left, *right;
 } BTNode;
 
@@ -85,6 +90,7 @@ int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
 int getval(void);
 int setval(char *, int);
+void updateNodeWeight(BTNode *);
 
 /* ----- fn: helpful.h ----- */
 
@@ -100,11 +106,12 @@ void codeGenerate(BTNode *);
 void initReg();
 Register *generateAsmCode(BTNode *);
 Register *getUnusedReg();
+void setReg(Register *, int);
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
 int getAddrAssigned(int);
-void setAddrAssigned(int);
+void setAddr(int, int);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);
@@ -153,9 +160,6 @@ int main(void)
         strcpy(sbtable[sbcount].name, c);
         sbtable[sbcount].val = 0;
         sbtable[sbcount].assigned = 1;
-        // TODO: optimize
-        // read x,y,z first
-        MOV_REG_ADDR(getUnusedReg(), sbcount * 4, c, 0);
         sbcount++;
     }
 
@@ -230,9 +234,24 @@ BTNode *makeNode(TokenSet tok, const char *lexe)
     strcpy(node->lexeme, lexe);
     node->data = tok;
     node->val = 0;
+    node->weight = 1;
     node->left = NULL;
     node->right = NULL;
     return node;
+}
+
+void updateNodeWeight(BTNode *node)
+{
+    int lw, rw;
+    if (node->left == NULL)
+        lw = 0;
+    else
+        lw = node->left->weight;
+    if (node->right == NULL)
+        rw = 0;
+    else
+        rw = node->right->weight;
+    node->weight = lw + 1 + rw;
 }
 
 TokenSet getToken(void)
@@ -366,6 +385,7 @@ BTNode *factor(void)
             advance();
             retp->left = left;
             retp->right = expr();
+            updateNodeWeight(retp);
         }
         else
         {
@@ -386,6 +406,7 @@ BTNode *factor(void)
             retp->right->val = getval();
             retp->left = makeNode(INT, "0");
             retp->left->val = 0;
+            updateNodeWeight(retp);
             advance();
         }
         else
@@ -401,6 +422,7 @@ BTNode *factor(void)
     {
         advance();
         retp = expr();
+        // updateNodeWeight(retp); //FIXME: necessary? i don't think so
         if (match(RPAREN))
         {
             advance();
@@ -439,6 +461,7 @@ BTNode *term_tail(BTNode *left)
 
         node->left = left;
         node->right = factor();
+        updateNodeWeight(node);
 
         return term_tail(node);
     }
@@ -468,6 +491,7 @@ BTNode *expr_tail(BTNode *left)
 
         node->left = left;
         node->right = term();
+        updateNodeWeight(node);
 
         return expr_tail(node);
     }
@@ -478,6 +502,7 @@ BTNode *expr_tail(BTNode *left)
 
         node->left = left;
         node->right = term();
+        updateNodeWeight(node);
 
         return expr_tail(node);
     }
@@ -646,7 +671,19 @@ void error(ErrorType errorNum)
             printf("Divided by zero\n");
             break;
         case VAR_UNASSIGNED:
-            printf("Value of Var unassigned\n");
+            printf("Variable unassigned\n");
+            break;
+        case CANT_GET_ADDR:
+            printf("Can't get id addr from name\n");
+            break;
+        case UNEXPECT_TOKENTYPE:
+            printf("Unexpect TokenType\n");
+            break;
+        case WRONG_ADDR:
+            printf("Wrong Address\n");
+            break;
+        case TESTING:
+            printf("Error occured (Notice: This error should only be used in Testing");
             break;
         }
     }
@@ -690,53 +727,82 @@ Register *generateAsmCode(BTNode *root)
                 error(VAR_UNASSIGNED);
             retreg = getUnusedReg();
             MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr));
-            retreg->val = getAddrVal(addr);
-            retreg->used = 1;
+            setReg(retreg, getAddrVal(addr));
             break;
         // TODO: improve `code generate` oper int int condition
         case INT:
             retreg = getUnusedReg();
             MOV_REG_INT(retreg, root->val);
-            retreg->val = root->val;
-            retreg->used = 1;
+            setReg(retreg, root->val);
             break;
         case ASSIGN:
-            addr = getAddr(root->left->lexeme);
+            addr = getAddr(root->left->lexeme); //FIXME: will `a + 5 = 12` exist in testcase ?
             rreg = generateAsmCode(root->right);
             MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr));
-            setAddrAssigned(addr);
-            returnReg(rreg);
+            setAddr(addr, rreg->val);
+            retreg = rreg;
+            // returnReg(rreg);
             break;
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            // note: reg useage depend on right/left rercursion
-            rreg = generateAsmCode(root->right);
-            lreg = generateAsmCode(root->left);
+            // note: reg useage depend on left/right rercursion
+            if (root->left->weight > root->right->weight)
+            {
+                lreg = generateAsmCode(root->left);
+                rreg = generateAsmCode(root->right);
+            }
+            else
+            {
+                rreg = generateAsmCode(root->right);
+                lreg = generateAsmCode(root->left);
+            }
             if (strcmp(root->lexeme, "+") == 0)
+            {
                 ADD_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val + rreg->val);
+            }
             else if (strcmp(root->lexeme, "-") == 0)
+            {
                 SUB_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val - rreg->val);
+            }
             else if (strcmp(root->lexeme, "*") == 0)
+            {
                 MUL_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val * rreg->val);
+            }
             else if (strcmp(root->lexeme, "/") == 0)
             {
                 if (rreg->val == 0)
                     error(DIV_BY_ZERO);
                 else
+                {
                     DIV_REG_REG(lreg, rreg);
+                    setReg(lreg, lreg->val / rreg->val);
+                }
             }
             else if (strcmp(root->lexeme, "|") == 0)
+            {
                 OR_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val | rreg->val);
+            }
             else if (strcmp(root->lexeme, "&") == 0)
+            {
                 AND_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val & rreg->val);
+            }
             else if (strcmp(root->lexeme, "^") == 0)
+            {
                 XOR_REG_REG(lreg, rreg);
+                setReg(lreg, lreg->val ^ rreg->val);
+            }
             returnReg(rreg);
             retreg = lreg;
             break;
         default:
-            retreg = NULL;
+            error(UNEXPECT_TOKENTYPE);
+            break;
         }
     }
     return retreg;
@@ -747,7 +813,7 @@ Register *getUnusedReg()
     Register *retreg = NULL;
     for (int i = 0; i < MAXREG; i++)
     {
-        if (!reg[i].used)
+        if (!(reg[i].used))
         {
             retreg = &(reg[i]);
             break;
@@ -758,6 +824,12 @@ Register *getUnusedReg()
     return retreg;
 }
 
+void setReg(Register *reg, int val)
+{
+    reg->val = val;
+    reg->used = 1;
+}
+
 void returnReg(Register *reg)
 {
     reg->val = 0;
@@ -766,7 +838,7 @@ void returnReg(Register *reg)
 
 int getAddr(char *str)
 {
-    int i = 0, retaddr;
+    int i = 0, retaddr = 0;
     while (i < sbcount)
     {
         if (strcmp(str, sbtable[i].name) == 0)
@@ -777,22 +849,34 @@ int getAddr(char *str)
         else
             i++;
     }
+    if (i >= sbcount)
+        error(CANT_GET_ADDR);
     return retaddr;
 }
 
 int getAddrVal(int addr)
 {
-    return sbtable[addr / 4].val;
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].val;
 }
 
 int getAddrAssigned(int addr)
 {
-    return sbtable[addr / 4].assigned;
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].assigned;
 }
 
-void setAddrAssigned(int addr)
+void setAddr(int addr, int val)
 {
-    sbtable[addr / 4].assigned = 1;
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    sbtable[i].val = val;
+    sbtable[i].assigned = 1;
 }
 
 /* ----- instruction.c ----- */

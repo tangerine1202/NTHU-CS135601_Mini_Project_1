@@ -1,3 +1,13 @@
+/* 
+### Reg Cache
+- add lexeme
+- add eraseable
+- find cache
+    - [1] used cache
+    - [0] find unused reg
+        - [0] erase eraseable reg
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -63,8 +73,16 @@ Register *generateAsmCode(BTNode *root)
         case ORANDXOR:
         case MULDIV:
             // note: reg useage depend on left/right rercursion
-            lreg = generateAsmCode(root->left);
-            rreg = generateAsmCode(root->right);
+            if (root->left->weight > root->right->weight)
+            {
+                lreg = generateAsmCode(root->left);
+                rreg = generateAsmCode(root->right);
+            }
+            else
+            {
+                rreg = generateAsmCode(root->right);
+                lreg = generateAsmCode(root->left);
+            }
             if (strcmp(root->lexeme, "+") == 0)
             {
                 ADD_REG_REG(lreg, rreg);

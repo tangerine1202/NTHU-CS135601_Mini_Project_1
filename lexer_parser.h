@@ -52,6 +52,7 @@ typedef struct _Node
     char lexeme[MAXLEN];
     TokenSet data;
     int val;
+    int weight;
     struct _Node *left, *right;
 } BTNode;
 
@@ -73,5 +74,6 @@ int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
 int getval(void);
 int setval(char *, int);
+void updateNodeWeight(BTNode *);
 
 #endif
