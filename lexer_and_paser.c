@@ -356,7 +356,7 @@ void statement(void)
             printf("\n");
 
             printf("Code Generate:\n");
-            init_reg();
+            initReg();
             codeGenerate(retp);
             freeTree(retp);
 

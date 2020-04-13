@@ -18,13 +18,13 @@ typedef struct
 
 extern Register reg[MAXREG];
 
-void init_reg();
-Register *get_unused_reg();
-void return_reg(Register *);
+void initReg();
+Register *getUnusedReg();
+void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
 Register *codeGenerate(BTNode *);
-void code_gen_error(CodeGen_ErrorType);
+void codeGenError(CodeGen_ErrorType);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);
