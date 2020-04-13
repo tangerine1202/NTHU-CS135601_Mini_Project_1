@@ -10,7 +10,7 @@ todo.md
 solve.exe
 input.txt
 output.txt
-submit.c
+# submit.c
 submit.exe
 sb_input.txt
 sb_output.txt
