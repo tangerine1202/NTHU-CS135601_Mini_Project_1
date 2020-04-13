@@ -17,11 +17,12 @@ void codeGenerate(BTNode *);
 void initReg();
 Register *generateAsmCode(BTNode *);
 Register *getUnusedReg();
+void setReg(Register *, int);
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
 int getAddrAssigned(int);
-void setAddrAssigned(int);
+void setAddr(int, int);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);

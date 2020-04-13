@@ -127,7 +127,16 @@ void error(ErrorType errorNum)
             fprintf(stderr, "Divided by zero\n");
             break;
         case VAR_UNASSIGNED:
-            fprintf(stderr, "Value of Var unassigned\n");
+            printf("Variable unassigned\n");
+            break;
+        case CANT_GET_ADDR:
+            printf("Can't get id addr from name\n");
+            break;
+        case UNEXPECT_TOKENTYPE:
+            printf("Unexpect TokenType\n");
+            break;
+        case WRONG_ADDR:
+            printf("Wrong Address\n");
             break;
         }
     }

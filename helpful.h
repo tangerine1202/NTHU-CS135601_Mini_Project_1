@@ -11,6 +11,9 @@ typedef enum
     REG_RUNOUT,
     DIV_BY_ZERO,
     VAR_UNASSIGNED,
+    CANT_GET_ADDR,
+    UNEXPECT_TOKENTYPE,
+    WRONG_ADDR,
 } ErrorType;
 
 extern int DEBUG_MODE;
