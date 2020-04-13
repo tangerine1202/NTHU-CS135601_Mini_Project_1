@@ -21,7 +21,7 @@ int main(void)
         // init XYZ
         for (int i = 0; i < 3; i++)
         {
-            char *c;
+            char c[2];
             c[0] = 'x' + i;
             c[1] = '\0';
             strcpy(sbtable[sbcount].name, c);
