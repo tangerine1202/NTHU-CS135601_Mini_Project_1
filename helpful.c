@@ -10,12 +10,11 @@ void evaluate(BTNode *root)
 {
     if (DEBUG_MODE)
     {
-        // printf("\n%d\n", evaluateTree(root));
+        printf("\neval: %d\n", evaluateTree(root));
         printPrefix(root);
         printf("\n");
         printf("\n");
         printTree(root, 0);
-        printf("\n");
         printf("\n");
     }
     if (DEBUG_MODE)
