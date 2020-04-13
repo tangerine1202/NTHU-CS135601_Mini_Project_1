@@ -248,10 +248,21 @@ BTNode *factor(void)
             updateNodeWeight(retp);
             advance();
         }
-        else
+        else if (match(LPAREN))
         {
-            error(NOTNUMID);
+            retp = makeNode(ADDSUB, tmpstr);
+            advance();
+            retp->right = expr();
+            retp->left = makeNode(INT, "0");
+            retp->left->val = 0;
+            updateNodeWeight(retp);
+            if (match(RPAREN))
+                advance();
+            else
+                error(MISPAREN);
         }
+        else
+            error(NOTNUMID);
     }
     else if (match(ORANDXOR)) //TODO: Does this condition exist?
     {
@@ -263,18 +274,12 @@ BTNode *factor(void)
         retp = expr();
         // updateNodeWeight(retp); //FIXME: necessary? i don't think so
         if (match(RPAREN))
-        {
             advance();
-        }
         else
-        {
             error(MISPAREN);
-        }
     }
     else
-    {
         error(NOTNUMID);
-    }
     return retp;
 }
 
