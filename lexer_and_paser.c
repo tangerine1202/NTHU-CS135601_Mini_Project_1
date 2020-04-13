@@ -2,8 +2,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "header.h"
+#include "lexer_parser.h"
 #include "code_gen.h"
+#include "helpful.h"
 
 TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
@@ -350,15 +351,7 @@ void statement(void)
         retp = expr();
         if (match(END))
         {
-            // TODO: seperate out `evaluate` and `code generate` parts
-            printf("%d\n", evaluateTree(retp));
-            printPrefix(retp);
-            printf("\n");
-
-            printf("Code Generate:\n");
-            initReg();
-            codeGenerate(retp);
-            freeTree(retp);
+            evaluate(retp);
 
             advance();
         }

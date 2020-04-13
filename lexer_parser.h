@@ -1,5 +1,5 @@
-#ifndef HEADER_H
-#define HEADER_H
+#ifndef LEXER_PARSER_H
+#define LEXER_PARSER_H
 
 /*
 Something like Python
@@ -78,9 +78,6 @@ TokenSet getToken(void);
 void advance(void);
 void error(ErrorType);
 int match(TokenSet);
-int evaluateTree(BTNode *);
-void printPrefix(BTNode *);
-void freeTree(BTNode *);
 BTNode *makeNode(TokenSet, const char *);
 int getval(void);
 int setval(char *, int);

@@ -2,8 +2,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "header.h"
+#include "lexer_parser.h"
 #include "code_gen.h"
+#include "helpful.h"
 
 Register reg[MAXREG];
 
@@ -95,7 +96,8 @@ Register *codeGenerate(BTNode *root)
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            rreg = codeGenerate(root->right); // ALL: do right recursion first can save reg useage
+            // note: reg useage depend on right/left rercursion
+            rreg = codeGenerate(root->right);
             lreg = codeGenerate(root->left);
             if (strcmp(root->lexeme, "+") == 0)
                 debug_ADD_REG_REG(lreg, rreg);

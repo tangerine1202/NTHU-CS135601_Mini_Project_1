@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "header.h"
+#include "lexer_parser.h"
 #include "code_gen.h"
 
 void MOV_REG_REG(Register *reg1, Register *reg2)
