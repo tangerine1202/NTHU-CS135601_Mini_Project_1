@@ -10,6 +10,7 @@ Register reg[MAXREG];
 
 void codeGenerate(BTNode *root)
 {
+    // TODO: optimize by cache reg (don't need to initReg everytime)
     initReg();
     generateAsmCode(root);
 }

@@ -10,15 +10,15 @@ int DEBUG_MODE = 1;
 
 int main(void)
 {
-    if (!DEBUG_MODE)
-    {
-        freopen("input.txt", "r", stdin);
-        freopen("output.txt", "w", stdout);
-    }
+    // freopen("input.txt", "r", stdin);
+    // freopen("output.txt", "w", stdout);
 
     // init sbtable as unassigned
     for (int i = 0; i < TBLSIZE; i++)
         sbtable[i].assigned = 0;
+
+    // initReg
+    initReg();
 
     // init xyz
     for (int i = 0; i < 3; i++)
