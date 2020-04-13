@@ -10,7 +10,7 @@ void evaluate(BTNode *root)
 {
     if (DEBUG_MODE)
     {
-        printf("\n%d\n", evaluateTree(root));
+        // printf("\n%d\n", evaluateTree(root));
         printPrefix(root);
         printf("\n");
         printf("\n");

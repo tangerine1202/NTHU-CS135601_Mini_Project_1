@@ -73,7 +73,12 @@ Register *generateAsmCode(BTNode *root)
             else if (strcmp(root->lexeme, "*") == 0)
                 MUL_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "/") == 0)
-                DIV_REG_REG(lreg, rreg);
+            {
+                if (rreg->val == 0)
+                    error(DIV_BY_ZERO);
+                else
+                    DIV_REG_REG(lreg, rreg);
+            }
             else if (strcmp(root->lexeme, "|") == 0)
                 OR_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "&") == 0)
