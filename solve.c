@@ -29,9 +29,6 @@ int main(void)
         strcpy(sbtable[sbcount].name, c);
         sbtable[sbcount].val = 0;
         sbtable[sbcount].assigned = 1;
-        // TODO: optimize
-        // read x,y,z first
-        MOV_REG_ADDR(getUnusedReg(), sbcount * 4, c, 0);
         sbcount++;
     }
 
