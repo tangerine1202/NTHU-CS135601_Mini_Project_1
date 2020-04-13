@@ -14,6 +14,9 @@ void evaluate(BTNode *root)
         printPrefix(root);
         printf("\n");
         printf("\n");
+        printTree(root, 0);
+        printf("\n");
+        printf("\n");
     }
     if (DEBUG_MODE)
     {
@@ -85,6 +88,54 @@ void printPrefix(BTNode *root)
         printf("%s ", root->lexeme);
         printPrefix(root->left);
         printPrefix(root->right);
+    }
+}
+
+void printTree(BTNode *root, int level)
+{
+    if (root != NULL)
+    {
+        for (int i = 0; i < level; i++)
+            printf("  ");
+        switch (root->data)
+        {
+        case UNKNOWN:
+            printf("[UNKNOWN]");
+            break;
+        case END:
+            printf("[END]");
+            break;
+        case INT:
+            printf("[INT]");
+            break;
+        case ID:
+            printf("[ID]");
+            break;
+        case ORANDXOR:
+            printf("[ORANDXOR]");
+            break;
+        case ADDSUB:
+            printf("[ADDSUB]");
+            break;
+        case MULDIV:
+            printf("[MULDIV]");
+            break;
+        case ASSIGN:
+            printf("[ASSIGN]");
+            break;
+        case LPAREN:
+            printf("[LPAREN]");
+            break;
+        case RPAREN:
+            printf("[RPAREN]");
+            break;
+        case ENDFILE:
+            printf("[ENDFILE]");
+            break;
+        }
+        printf("%s\n", root->lexeme);
+        printTree(root->left, level + 1);
+        printTree(root->right, level + 1);
     }
 }
 
