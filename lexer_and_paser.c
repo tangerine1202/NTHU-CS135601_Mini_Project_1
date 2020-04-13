@@ -335,6 +335,17 @@ void statement(void)
 
     if (match(ENDFILE))
     {
+        // TODO: optimize
+        // write x,y,z to r0,r1,r2
+        for (int i = 0; i < 3; i++)
+        {
+            char c[2];
+            c[0] = (char)('x' + i);
+            c[1] = '\0';
+            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)));
+            sbcount++;
+        }
+
         EXIT_INSTRUCTION(0);
         exit(0);
     }

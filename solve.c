@@ -20,7 +20,7 @@ int main(void)
     for (int i = 0; i < TBLSIZE; i++)
         sbtable[i].assigned = 0;
 
-    // init XYZ
+    // init xyz
     for (int i = 0; i < 3; i++)
     {
         char c[2];
@@ -29,6 +29,9 @@ int main(void)
         strcpy(sbtable[sbcount].name, c);
         sbtable[sbcount].val = 0;
         sbtable[sbcount].assigned = 1;
+        // TODO: optimize
+        // read x,y,z first
+        MOV_REG_ADDR(getUnusedReg(), sbcount * 4, c, 0);
         sbcount++;
     }
 

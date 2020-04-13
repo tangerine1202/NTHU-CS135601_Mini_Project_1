@@ -103,7 +103,6 @@ void error(ErrorType errorNum)
 {
     if (DEBUG_MODE)
     {
-
         switch (errorNum)
         {
         case MISPAREN:
