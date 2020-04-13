@@ -6,7 +6,7 @@
 #include "code_gen.h"
 #include "helpful.h"
 
-int DEBUG_MODE = 0;
+int DEBUG_MODE = 1;
 
 int main(void)
 {
@@ -16,19 +16,25 @@ int main(void)
         freopen("output.txt", "w", stdout);
     }
 
+    // init sbtable as unassigned
+    for (int i = 0; i < TBLSIZE; i++)
+        sbtable[i].assigned = 0;
+
+    // init XYZ
+    for (int i = 0; i < 3; i++)
+    {
+        char c[2];
+        c[0] = (char)('x' + i);
+        c[1] = '\0';
+        strcpy(sbtable[sbcount].name, c);
+        sbtable[sbcount].val = 0;
+        sbtable[sbcount].assigned = 1;
+        printf("sbtable[%d].name = %s\n", sbcount, sbtable[sbcount].name);
+        sbcount++;
+    }
+
     while (1)
     {
-        // init XYZ
-        for (int i = 0; i < 3; i++)
-        {
-            char c[2];
-            c[0] = 'x' + i;
-            c[1] = '\0';
-            strcpy(sbtable[sbcount].name, c);
-            sbtable[sbcount].val = 0;
-            sbcount++;
-        }
-
         statement();
     }
     return 0;
