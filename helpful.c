@@ -8,16 +8,28 @@
 
 void evaluate(BTNode *root)
 {
-    printf("-------------------");
-    printf("%d\n", evaluateTree(root));
-    printPrefix(root);
-    printf("\n");
-    printf("\n");
+    int debug = 1;
 
-    printf("Code Generate:\n");
-    initReg();
-    codeGenerate(root);
-    printf("\n");
+    if (debug)
+    {
+        printf("-------------------\n");
+        printf("%d\n", evaluateTree(root));
+        printPrefix(root);
+        printf("\n");
+        printf("\n");
+    }
+    if (debug)
+    {
+        printf("Code Generate:\n");
+        initReg();
+        codeGenerate(root, debug);
+        printf("\n");
+    }
+    else
+    {
+        initReg();
+        codeGenerate(root, 0);
+    }
 
     freeTree(root);
 }

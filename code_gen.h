@@ -23,10 +23,28 @@ Register *getUnusedReg();
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
-Register *codeGenerate(BTNode *);
+Register *codeGenerate(BTNode *, int);
 void codeGenError(CodeGen_ErrorType);
 
 // instruction
+void MOV_REG_REG(Register *, Register *, int);
+void MOV_REG_INT(Register *, int, int);
+void MOV_REG_ADDR(Register *, int, char *, int, int);
+void MOV_ADDR_REG(int, Register *, char *, int, int);
+
+void ADD_REG_REG(Register *, Register *, int);
+void SUB_REG_REG(Register *, Register *, int);
+void MUL_REG_REG(Register *, Register *, int);
+void DIV_REG_REG(Register *, Register *, int);
+
+void AND_REG_REG(Register *, Register *, int);
+void OR_REG_REG(Register *, Register *, int);
+void XOR_REG_REG(Register *, Register *, int);
+
+void EXIT_instruction(int);
+
+// (deprecated pure instruction)
+/*
 void MOV_REG_REG(Register *, Register *);
 void MOV_REG_INT(Register *, int);
 void MOV_REG_ADDR(Register *, int);
@@ -40,23 +58,6 @@ void DIV_REG_REG(Register *, Register *);
 void AND_REG_REG(Register *, Register *);
 void OR_REG_REG(Register *, Register *);
 void XOR_REG_REG(Register *, Register *);
-
-void EXIT_instruction(int);
-
-// debug instruction
-// instruction
-void debug_MOV_REG_REG(Register *, Register *);
-void debug_MOV_REG_INT(Register *, int);
-void debug_MOV_REG_ADDR(Register *, int, char *, int);
-void debug_MOV_ADDR_REG(int, Register *, char *, int);
-
-void debug_ADD_REG_REG(Register *, Register *);
-void debug_SUB_REG_REG(Register *, Register *);
-void debug_MUL_REG_REG(Register *, Register *);
-void debug_DIV_REG_REG(Register *, Register *);
-
-void debug_AND_REG_REG(Register *, Register *);
-void debug_OR_REG_REG(Register *, Register *);
-void debug_XOR_REG_REG(Register *, Register *);
+*/
 
 #endif

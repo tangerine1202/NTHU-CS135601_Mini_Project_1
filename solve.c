@@ -8,10 +8,9 @@
 
 int main(void)
 {
-    /*
-    freopen( "input.in" , "r" , stdin ) ;
-    freopen( "output.out" , "w" , stdout ) ;
-    */
+
+    // freopen("input.txt", "r", stdin);
+    // freopen("output.txt", "w", stdout);
 
     while (1)
     {
