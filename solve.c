@@ -29,7 +29,6 @@ int main(void)
         strcpy(sbtable[sbcount].name, c);
         sbtable[sbcount].val = 0;
         sbtable[sbcount].assigned = 1;
-        printf("sbtable[%d].name = %s\n", sbcount, sbtable[sbcount].name);
         sbcount++;
     }
 

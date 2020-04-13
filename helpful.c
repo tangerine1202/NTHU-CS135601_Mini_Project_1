@@ -101,32 +101,37 @@ void freeTree(BTNode *root)
 
 void error(ErrorType errorNum)
 {
-    switch (errorNum)
+    if (DEBUG_MODE)
     {
-    case MISPAREN:
-        fprintf(stderr, "Mismatched parenthesis\n");
-        break;
-    case NOTNUMID:
-        fprintf(stderr, "Number or identifier expected\n");
-        break;
-    case NOTFOUND:
-        fprintf(stderr, "%s not defined\n", getLexeme());
-        break;
-    case RUNOUT:
-        fprintf(stderr, "Out of memory\n");
-        break;
-    case DEBUG_FACROT_ORANDXOR:
-        fprintf(stderr, "or/and/xor exists in factor\n");
-        break;
-    case REG_RUNOUT:
-        fprintf(stderr, "Run out of register\n");
-        break;
-    case DIV_BY_ZERO:
-        fprintf(stderr, "Divided by zero\n");
-        break;
-    case VAR_UNASSIGNED:
-        fprintf(stderr, "Value of Var unassigned\n");
-        break;
+
+        switch (errorNum)
+        {
+        case MISPAREN:
+            fprintf(stderr, "Mismatched parenthesis\n");
+            break;
+        case NOTNUMID:
+            fprintf(stderr, "Number or identifier expected\n");
+            break;
+        case NOTFOUND:
+            fprintf(stderr, "%s not defined\n", getLexeme());
+            break;
+        case RUNOUT:
+            fprintf(stderr, "Out of memory\n");
+            break;
+        case DEBUG_FACROT_ORANDXOR:
+            fprintf(stderr, "or/and/xor exists in factor\n");
+            break;
+        case REG_RUNOUT:
+            fprintf(stderr, "Run out of register\n");
+            break;
+        case DIV_BY_ZERO:
+            fprintf(stderr, "Divided by zero\n");
+            break;
+        case VAR_UNASSIGNED:
+            fprintf(stderr, "Value of Var unassigned\n");
+            break;
+        }
     }
+    EXIT_INSTRUCTION(1);
     exit(0);
 }

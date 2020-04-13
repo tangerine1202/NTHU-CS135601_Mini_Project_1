@@ -38,7 +38,7 @@ void AND_REG_REG(Register *, Register *);
 void OR_REG_REG(Register *, Register *);
 void XOR_REG_REG(Register *, Register *);
 
-void EXIT_instruction(int);
+void EXIT_INSTRUCTION(int);
 
 // (deprecated pure instruction)
 /*

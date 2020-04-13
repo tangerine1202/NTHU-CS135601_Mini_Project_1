@@ -335,7 +335,7 @@ void statement(void)
 
     if (match(ENDFILE))
     {
-
+        EXIT_INSTRUCTION(0);
         exit(0);
     }
     else if (match(END))

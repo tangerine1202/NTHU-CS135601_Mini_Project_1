@@ -86,7 +86,7 @@ void XOR_REG_REG(Register *reg1, Register *reg2)
         fprintf(stdout, "XOR %s %s\n", reg1->name, reg2->name);
 }
 
-void EXIT_instruction(int exitcode)
+void EXIT_INSTRUCTION(int exitcode)
 {
     printf("EXIT %d\n", exitcode);
 }
