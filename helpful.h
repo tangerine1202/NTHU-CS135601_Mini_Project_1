@@ -10,6 +10,7 @@ typedef enum
     DEBUG_FACROT_ORANDXOR,
     REG_RUNOUT,
     DIV_BY_ZERO,
+    VAR_UNASSIGNED,
 } ErrorType;
 
 extern int DEBUG_MODE;

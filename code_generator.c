@@ -38,6 +38,8 @@ Register *generateAsmCode(BTNode *root)
         {
         case ID:
             addr = getAddr(root->lexeme);
+            if (!getAddrAssigned(addr))
+                error(VAR_UNASSIGNED);
             retreg = getUnusedReg();
             MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr));
             retreg->val = getAddrVal(addr);
@@ -51,9 +53,10 @@ Register *generateAsmCode(BTNode *root)
             retreg->used = 1;
             break;
         case ASSIGN:
-            rreg = generateAsmCode(root->right);
             addr = getAddr(root->left->lexeme);
+            rreg = generateAsmCode(root->right);
             MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr));
+            setAddrAssigned(addr);
             returnReg(rreg);
             break;
         case ADDSUB:
@@ -127,4 +130,14 @@ int getAddr(char *str)
 int getAddrVal(int addr)
 {
     return sbtable[addr / 4].val;
+}
+
+int getAddrAssigned(int addr)
+{
+    return sbtable[addr / 4].assigned;
+}
+
+void setAddrAssigned(int addr)
+{
+    sbtable[addr / 4].assigned = 1;
 }

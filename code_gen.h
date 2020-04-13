@@ -20,6 +20,8 @@ Register *getUnusedReg();
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
+int getAddrAssigned(int);
+void setAddrAssigned(int);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);

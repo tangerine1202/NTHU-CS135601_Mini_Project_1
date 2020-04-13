@@ -44,6 +44,7 @@ typedef struct
 {
     char name[MAXLEN];
     int val;
+    int assigned;
 } Symbol;
 
 typedef struct _Node

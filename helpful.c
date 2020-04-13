@@ -123,6 +123,10 @@ void error(ErrorType errorNum)
         break;
     case DIV_BY_ZERO:
         fprintf(stderr, "Divided by zero\n");
+        break;
+    case VAR_UNASSIGNED:
+        fprintf(stderr, "Value of Var unassigned\n");
+        break;
     }
     exit(0);
 }
