@@ -57,7 +57,12 @@ int evaluateTree(BTNode *root)
             else if (strcmp(root->lexeme, "*") == 0)
                 retval = lv * rv;
             else if (strcmp(root->lexeme, "/") == 0)
-                retval = lv / rv;
+            {
+                if (rv == 0)
+                    error(DIV_BY_ZERO);
+                else
+                    retval = lv / rv;
+            }
             else if (strcmp(root->lexeme, "|") == 0)
                 retval = lv | rv;
             else if (strcmp(root->lexeme, "&") == 0)
