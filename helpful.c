@@ -10,8 +10,7 @@ void evaluate(BTNode *root)
 {
     if (DEBUG_MODE)
     {
-        printf("-------------------\n");
-        printf("%d\n", evaluateTree(root));
+        printf("\n%d\n", evaluateTree(root));
         printPrefix(root);
         printf("\n");
         printf("\n");
@@ -21,6 +20,7 @@ void evaluate(BTNode *root)
         printf("Code Generate:\n");
         codeGenerate(root);
         printf("\n");
+        printf("-------------------\n");
     }
     else
     {
