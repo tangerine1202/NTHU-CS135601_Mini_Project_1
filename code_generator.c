@@ -56,12 +56,13 @@ Register *generateAsmCode(BTNode *root)
             rreg = generateAsmCode(root->right);
             MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr));
             setAddr(addr, rreg->val);
-            returnReg(rreg);
+            retreg = rreg;
+            // returnReg(rreg);
             break;
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            // note: reg useage depend on right/left rercursion
+            // note: reg useage depend on left/right rercursion
             lreg = generateAsmCode(root->left);
             rreg = generateAsmCode(root->right);
             if (strcmp(root->lexeme, "+") == 0)
