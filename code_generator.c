@@ -98,7 +98,7 @@ Register *getUnusedReg()
         }
     }
     if (retreg == NULL)
-        codeGenError(REG_RUNOUT);
+        error(REG_RUNOUT);
     return retreg;
 }
 
@@ -127,15 +127,4 @@ int getAddr(char *str)
 int getAddrVal(int addr)
 {
     return sbtable[addr / 4].val;
-}
-
-void codeGenError(CodeGen_ErrorType errorNum)
-{
-    switch (errorNum)
-    {
-    case REG_RUNOUT:
-        fprintf(stderr, "Run out of register\n");
-        break;
-    }
-    exit(0);
 }

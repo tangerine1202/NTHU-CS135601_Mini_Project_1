@@ -27,14 +27,6 @@ everything is an expression
 
 typedef enum
 {
-    MISPAREN,
-    NOTNUMID,
-    NOTFOUND,
-    RUNOUT,
-    DEBUG_FACROT_ORANDXOR
-} ErrorType;
-typedef enum
-{
     UNKNOWN,
     END,
     INT,
@@ -76,7 +68,6 @@ void statement(void);
 char *getLexeme(void);
 TokenSet getToken(void);
 void advance(void);
-void error(ErrorType);
 int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
 int getval(void);

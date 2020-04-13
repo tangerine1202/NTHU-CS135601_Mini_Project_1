@@ -3,11 +3,6 @@
 
 #define MAXREG 8
 
-typedef enum
-{
-    REG_RUNOUT,
-} CodeGen_ErrorType;
-
 typedef struct
 {
     int id;
@@ -25,7 +20,6 @@ Register *getUnusedReg();
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
-void codeGenError(CodeGen_ErrorType);
 
 // instruction
 void MOV_REG_REG(Register *, Register *, int);

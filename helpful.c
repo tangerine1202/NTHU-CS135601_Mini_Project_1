@@ -95,3 +95,31 @@ void freeTree(BTNode *root)
         free(root);
     }
 }
+
+void error(ErrorType errorNum)
+{
+    switch (errorNum)
+    {
+    case MISPAREN:
+        fprintf(stderr, "Mismatched parenthesis\n");
+        break;
+    case NOTNUMID:
+        fprintf(stderr, "Number or identifier expected\n");
+        break;
+    case NOTFOUND:
+        fprintf(stderr, "%s not defined\n", getLexeme());
+        break;
+    case RUNOUT:
+        fprintf(stderr, "Out of memory\n");
+        break;
+    case DEBUG_FACROT_ORANDXOR:
+        fprintf(stderr, "or/and/xor exists in factor\n");
+        break;
+    case REG_RUNOUT:
+        fprintf(stderr, "Run out of register\n");
+        break;
+    case DIV_BY_ZERO:
+        fprintf(stderr, "Divided by zero\n");
+    }
+    exit(0);
+}

@@ -354,26 +354,3 @@ void statement(void)
         }
     }
 }
-
-void error(ErrorType errorNum)
-{
-    switch (errorNum)
-    {
-    case MISPAREN:
-        fprintf(stderr, "Mismatched parenthesis\n");
-        break;
-    case NOTNUMID:
-        fprintf(stderr, "Number or identifier expected\n");
-        break;
-    case NOTFOUND:
-        fprintf(stderr, "%s not defined\n", getLexeme());
-        break;
-    case RUNOUT:
-        fprintf(stderr, "Out of memory\n");
-        break;
-    case DEBUG_FACROT_ORANDXOR:
-        fprintf(stderr, "or/and/xor exists in factor\n");
-        break;
-    }
-    exit(0);
-}
