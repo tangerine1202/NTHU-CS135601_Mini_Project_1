@@ -6,11 +6,15 @@
 #include "code_gen.h"
 #include "helpful.h"
 
+int DEBUG_MODE = 0;
+
 int main(void)
 {
-
-    // freopen("input.txt", "r", stdin);
-    // freopen("output.txt", "w", stdout);
+    if (!DEBUG_MODE)
+    {
+        freopen("input.txt", "r", stdin);
+        freopen("output.txt", "w", stdout);
+    }
 
     while (1)
     {

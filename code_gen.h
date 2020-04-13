@@ -13,28 +13,28 @@ typedef struct
 
 extern Register reg[MAXREG];
 
-void codeGenerate(BTNode *, int);
+void codeGenerate(BTNode *);
 void initReg();
-Register *generateAsmCode(BTNode *, int);
+Register *generateAsmCode(BTNode *);
 Register *getUnusedReg();
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
 
 // instruction
-void MOV_REG_REG(Register *, Register *, int);
-void MOV_REG_INT(Register *, int, int);
-void MOV_REG_ADDR(Register *, int, char *, int, int);
-void MOV_ADDR_REG(int, Register *, char *, int, int);
+void MOV_REG_REG(Register *, Register *);
+void MOV_REG_INT(Register *, int);
+void MOV_REG_ADDR(Register *, int, char *, int);
+void MOV_ADDR_REG(int, Register *, char *, int);
 
-void ADD_REG_REG(Register *, Register *, int);
-void SUB_REG_REG(Register *, Register *, int);
-void MUL_REG_REG(Register *, Register *, int);
-void DIV_REG_REG(Register *, Register *, int);
+void ADD_REG_REG(Register *, Register *);
+void SUB_REG_REG(Register *, Register *);
+void MUL_REG_REG(Register *, Register *);
+void DIV_REG_REG(Register *, Register *);
 
-void AND_REG_REG(Register *, Register *, int);
-void OR_REG_REG(Register *, Register *, int);
-void XOR_REG_REG(Register *, Register *, int);
+void AND_REG_REG(Register *, Register *);
+void OR_REG_REG(Register *, Register *);
+void XOR_REG_REG(Register *, Register *);
 
 void EXIT_instruction(int);
 

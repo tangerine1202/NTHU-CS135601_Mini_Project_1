@@ -8,10 +8,10 @@
 
 Register reg[MAXREG];
 
-void codeGenerate(BTNode *root, int debug)
+void codeGenerate(BTNode *root)
 {
     initReg();
-    generateAsmCode(root, debug);
+    generateAsmCode(root);
 }
 
 void initReg()
@@ -28,7 +28,7 @@ void initReg()
     }
 }
 
-Register *generateAsmCode(BTNode *root, int debug)
+Register *generateAsmCode(BTNode *root)
 {
     Register *retreg = NULL, *lreg, *rreg;
     int addr;
@@ -39,43 +39,43 @@ Register *generateAsmCode(BTNode *root, int debug)
         case ID:
             addr = getAddr(root->lexeme);
             retreg = getUnusedReg();
-            MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr), debug);
+            MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr));
             retreg->val = getAddrVal(addr);
             retreg->used = 1;
             break;
         // TODO: improve `code generate` oper int int condition
         case INT:
             retreg = getUnusedReg();
-            MOV_REG_INT(retreg, root->val, debug);
+            MOV_REG_INT(retreg, root->val);
             retreg->val = root->val;
             retreg->used = 1;
             break;
         case ASSIGN:
-            rreg = generateAsmCode(root->right, debug);
+            rreg = generateAsmCode(root->right);
             addr = getAddr(root->left->lexeme);
-            MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr), debug);
+            MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr));
             returnReg(rreg);
             break;
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
             // note: reg useage depend on right/left rercursion
-            rreg = generateAsmCode(root->right, debug);
-            lreg = generateAsmCode(root->left, debug);
+            rreg = generateAsmCode(root->right);
+            lreg = generateAsmCode(root->left);
             if (strcmp(root->lexeme, "+") == 0)
-                ADD_REG_REG(lreg, rreg, debug);
+                ADD_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "-") == 0)
-                SUB_REG_REG(lreg, rreg, debug);
+                SUB_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "*") == 0)
-                MUL_REG_REG(lreg, rreg, debug);
+                MUL_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "/") == 0)
-                DIV_REG_REG(lreg, rreg, debug);
+                DIV_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "|") == 0)
-                OR_REG_REG(lreg, rreg, debug);
+                OR_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "&") == 0)
-                AND_REG_REG(lreg, rreg, debug);
+                AND_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "^") == 0)
-                XOR_REG_REG(lreg, rreg, debug);
+                XOR_REG_REG(lreg, rreg);
             returnReg(rreg);
             retreg = lreg;
             break;

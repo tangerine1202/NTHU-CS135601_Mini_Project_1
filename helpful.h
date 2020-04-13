@@ -12,6 +12,8 @@ typedef enum
     DIV_BY_ZERO,
 } ErrorType;
 
+extern int DEBUG_MODE;
+
 void evaluate(BTNode *);
 int evaluateTree(BTNode *);
 void printPrefix(BTNode *);

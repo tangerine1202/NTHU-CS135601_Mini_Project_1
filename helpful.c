@@ -8,9 +8,7 @@
 
 void evaluate(BTNode *root)
 {
-    int debug = 1;
-
-    if (debug)
+    if (DEBUG_MODE)
     {
         printf("-------------------\n");
         printf("%d\n", evaluateTree(root));
@@ -18,15 +16,15 @@ void evaluate(BTNode *root)
         printf("\n");
         printf("\n");
     }
-    if (debug)
+    if (DEBUG_MODE)
     {
         printf("Code Generate:\n");
-        codeGenerate(root, 1);
+        codeGenerate(root);
         printf("\n");
     }
     else
     {
-        codeGenerate(root, 0);
+        codeGenerate(root);
     }
 
     freeTree(root);
