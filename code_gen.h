@@ -18,12 +18,13 @@ typedef struct
 
 extern Register reg[MAXREG];
 
+void codeGenerate(BTNode *, int);
 void initReg();
+Register *generateAsmCode(BTNode *, int);
 Register *getUnusedReg();
 void returnReg(Register *);
 int getAddr(char *);
 int getAddrVal(int);
-Register *codeGenerate(BTNode *, int);
 void codeGenError(CodeGen_ErrorType);
 
 // instruction

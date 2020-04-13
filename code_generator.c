@@ -8,6 +8,12 @@
 
 Register reg[MAXREG];
 
+void codeGenerate(BTNode *root, int debug)
+{
+    initReg();
+    generateAsmCode(root, debug);
+}
+
 void initReg()
 {
     char *regname;
@@ -20,6 +26,64 @@ void initReg()
         reg[i].name[1] = '0' + i;
         reg[i].name[2] = '\0';
     }
+}
+
+Register *generateAsmCode(BTNode *root, int debug)
+{
+    Register *retreg = NULL, *lreg, *rreg;
+    int addr;
+    if (root != NULL)
+    {
+        switch (root->data)
+        {
+        case ID:
+            addr = getAddr(root->lexeme);
+            retreg = getUnusedReg();
+            MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr), debug);
+            retreg->val = getAddrVal(addr);
+            retreg->used = 1;
+            break;
+        // TODO: improve `code generate` oper int int condition
+        case INT:
+            retreg = getUnusedReg();
+            MOV_REG_INT(retreg, root->val, debug);
+            retreg->val = root->val;
+            retreg->used = 1;
+            break;
+        case ASSIGN:
+            rreg = generateAsmCode(root->right, debug);
+            addr = getAddr(root->left->lexeme);
+            MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr), debug);
+            returnReg(rreg);
+            break;
+        case ADDSUB:
+        case ORANDXOR:
+        case MULDIV:
+            // note: reg useage depend on right/left rercursion
+            rreg = generateAsmCode(root->right, debug);
+            lreg = generateAsmCode(root->left, debug);
+            if (strcmp(root->lexeme, "+") == 0)
+                ADD_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "-") == 0)
+                SUB_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "*") == 0)
+                MUL_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "/") == 0)
+                DIV_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "|") == 0)
+                OR_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "&") == 0)
+                AND_REG_REG(lreg, rreg, debug);
+            else if (strcmp(root->lexeme, "^") == 0)
+                XOR_REG_REG(lreg, rreg, debug);
+            returnReg(rreg);
+            retreg = lreg;
+            break;
+        default:
+            retreg = NULL;
+        }
+    }
+    return retreg;
 }
 
 Register *getUnusedReg()
@@ -63,64 +127,6 @@ int getAddr(char *str)
 int getAddrVal(int addr)
 {
     return sbtable[addr / 4].val;
-}
-
-Register *codeGenerate(BTNode *root, int debug)
-{
-    Register *retreg = NULL, *lreg, *rreg;
-    int addr;
-    if (root != NULL)
-    {
-        switch (root->data)
-        {
-        case ID:
-            addr = getAddr(root->lexeme);
-            retreg = getUnusedReg();
-            MOV_REG_ADDR(retreg, addr, sbtable[addr / 4].name, getAddrVal(addr), debug);
-            retreg->val = getAddrVal(addr);
-            retreg->used = 1;
-            break;
-        // TODO: improve `code generate` oper int int condition
-        case INT:
-            retreg = getUnusedReg();
-            MOV_REG_INT(retreg, root->val, debug);
-            retreg->val = root->val;
-            retreg->used = 1;
-            break;
-        case ASSIGN:
-            rreg = codeGenerate(root->right, debug);
-            addr = getAddr(root->left->lexeme);
-            MOV_ADDR_REG(addr, rreg, sbtable[addr / 4].name, getAddrVal(addr), debug);
-            returnReg(rreg);
-            break;
-        case ADDSUB:
-        case ORANDXOR:
-        case MULDIV:
-            // note: reg useage depend on right/left rercursion
-            rreg = codeGenerate(root->right, debug);
-            lreg = codeGenerate(root->left, debug);
-            if (strcmp(root->lexeme, "+") == 0)
-                ADD_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "-") == 0)
-                SUB_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "*") == 0)
-                MUL_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "/") == 0)
-                DIV_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "|") == 0)
-                OR_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "&") == 0)
-                AND_REG_REG(lreg, rreg, debug);
-            else if (strcmp(root->lexeme, "^") == 0)
-                XOR_REG_REG(lreg, rreg, debug);
-            returnReg(rreg);
-            retreg = lreg;
-            break;
-        default:
-            retreg = NULL;
-        }
-    }
-    return retreg;
 }
 
 void codeGenError(CodeGen_ErrorType errorNum)

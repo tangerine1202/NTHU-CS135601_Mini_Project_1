@@ -11,8 +11,6 @@ char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
 int sbcount = 0;
 
-/* ---------- Lexer & parser ---------- */
-
 int getval(void)
 {
     int i, retval, found;
@@ -347,7 +345,6 @@ void statement(void)
     }
     else
     {
-
         retp = expr();
         if (match(END))
         {

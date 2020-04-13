@@ -21,13 +21,11 @@ void evaluate(BTNode *root)
     if (debug)
     {
         printf("Code Generate:\n");
-        initReg();
-        codeGenerate(root, debug);
+        codeGenerate(root, 1);
         printf("\n");
     }
     else
     {
-        initReg();
         codeGenerate(root, 0);
     }
 
