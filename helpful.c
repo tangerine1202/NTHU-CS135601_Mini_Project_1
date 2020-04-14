@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <math.h>
 #include "struct_vars.h"
 #include "lexer_parser.h"
 #include "semantizer.h"
@@ -21,12 +22,13 @@ void evaluate(BTNode *root)
         char buf[10];
         semantic_val = semantize(root);
         if (semantic_val == NULL)
-            printf("null");
+            printf("null\n");
         else
-            printf("%s",
+            printf("%s\n",
                    semantic_val->unknown_val ? "#" : itoa(semantic_val->val, buf, 10));
 
-        printf("\n\n");
+        printf("Reg needed: %d(+1)\n", root->weight);
+        printf("\n");
 
         // Statement Prefix representation
         printf("Prefix representation:\n");
