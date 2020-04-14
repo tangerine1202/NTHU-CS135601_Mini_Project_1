@@ -24,19 +24,19 @@ everything is an expression
                         (for negative number e.g. (-1), (-3*2))
 */
 
+int getValFromLexeme(void);
+int setSbVal(char *, int);
 BTNode *factor(void);
 BTNode *term(void);
 BTNode *term_tail(BTNode *);
 BTNode *expr(void);
 BTNode *expr_tail(BTNode *);
 void statement(void);
-char *getLexeme(void);
+
 TokenSet getToken(void);
+char *getLexeme(void);
 void advance(void);
 int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
-int getval(void);
-int setval(char *, int);
-void updateNodeWeight(BTNode *);
 
 #endif

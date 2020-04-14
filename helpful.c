@@ -4,32 +4,57 @@
 #include <stdlib.h>
 #include "struct_vars.h"
 #include "lexer_parser.h"
+#include "semantizer.h"
 #include "code_gen.h"
 #include "helpful.h"
 
+int DEBUG_MODE = 1;
+
 void evaluate(BTNode *root)
 {
+    Value *semantic_val = NULL;
+
     if (DEBUG_MODE)
     {
-        printf("\neval: %d\n", evaluateTree(root));
+        // Value of statement ('#' for unknown, 'null' for assign)
+        printf("\nVal: ");
+        char buf[10];
+        semantic_val = semantize(root);
+        if (semantic_val == NULL)
+            printf("null");
+        else
+            printf("%s",
+                   semantic_val->unknown_val ? "#" : itoa(semantic_val->val, buf, 10));
+
+        printf("\n\n");
+
+        // Statement Prefix representation
+        printf("Prefix representation:\n");
         printPrefix(root);
-        printf("\n");
-        printf("\n");
+        printf("\n\n");
+
+        // Tree view
+        printf("Tree view:\n");
         printTree(root, 0);
         printf("\n");
-    }
-    if (DEBUG_MODE)
-    {
-        printf("Code Generate:\n");
+
+        // TODO: accelerator
+        // accelerator(root);
+
+        // Asm Code
         codeGenerate(root);
         printf("\n");
         printf("-------------------\n");
     }
+
     else
     {
+        semantic_val = semantize(root);
+
         codeGenerate(root);
     }
-
+    if (semantic_val != NULL)
+        free(semantic_val);
     freeTree(root);
 }
 
@@ -38,7 +63,7 @@ int evaluateTree(BTNode *root)
     int retval = 0, lv, rv;
     if (root != NULL)
     {
-        switch (root->data)
+        switch (root->token)
         {
         case ID:
         case INT:
@@ -71,7 +96,7 @@ int evaluateTree(BTNode *root)
             else if (strcmp(root->lexeme, "^") == 0)
                 retval = lv ^ rv;
             else if (strcmp(root->lexeme, "=") == 0)
-                retval = setval(root->left->lexeme, rv);
+                retval = setSbVal(root->left->lexeme, rv);
             break;
         default:
             retval = 0;
@@ -97,7 +122,7 @@ void printTree(BTNode *root, int level)
     {
         for (int i = 0; i < level; i++)
             printf("  ");
-        switch (root->data)
+        switch (root->token)
         {
         case UNKNOWN:
             printf("[UNKNOWN]");
@@ -168,7 +193,7 @@ void error(ErrorType errorNum)
         case RUNOUT:
             fprintf(stderr, "Out of memory\n");
             break;
-        case DEBUG_FACROT_ORANDXOR:
+        case FACROT_ORANDXOR:
             fprintf(stderr, "or/and/xor exists in factor\n");
             break;
         case REG_RUNOUT:
@@ -189,8 +214,132 @@ void error(ErrorType errorNum)
         case WRONG_ADDR:
             printf("Wrong Address\n");
             break;
+        case NULL_REGISTER: // maybe deprecated
+            printf("Null register\n");
+            break;
+        case NULL_VALUE:
+            printf("Calculate with NULL value\n");
+            break;
+        case NULL_NODE:
+            printf("Read null Node\n");
+            break;
         }
     }
     EXIT_INSTRUCTION(1);
     exit(0);
+}
+
+int getAddr(char *str)
+{
+    int i = 0, retaddr = 0;
+    while (i < sbcount)
+    {
+        if (strcmp(str, sbtable[i].name) == 0)
+        {
+            retaddr = i * 4;
+            break;
+        }
+        else
+            i++;
+    }
+    if (i >= sbcount)
+        error(CANT_GET_ADDR);
+    return retaddr;
+}
+
+char *getAddrName(int addr)
+{
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].name;
+}
+
+int getAddrUnknownVal(int addr)
+{
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].unknown_val;
+}
+
+int getAddrVal(int addr)
+{
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].val;
+}
+
+int getAddrAssigned(int addr)
+{
+    int i = addr / 4;
+    if (i < 0 || i >= sbcount)
+        error(WRONG_ADDR);
+    return sbtable[i].assigned;
+}
+
+int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+int min(int a, int b)
+{
+    return a < b ? a : b;
+}
+
+// inline function to swap two numbers
+inline void charswap(char *x, char *y)
+{
+    char t = *x;
+    *x = *y;
+    *y = t;
+}
+
+// function to reverse buffer[i..j]
+char *reverse(char *buffer, int i, int j)
+{
+    while (i < j)
+        charswap(&buffer[i++], &buffer[j--]);
+
+    return buffer;
+}
+
+// Iterative function to implement itoa() function in C
+char *itoa(int value, char *buffer, int base)
+{
+    // invalid input
+    if (base < 2 || base > 32)
+        return buffer;
+
+    // consider absolute value of number
+    int n = abs(value);
+
+    int i = 0;
+    while (n)
+    {
+        int r = n % base;
+
+        if (r >= 10)
+            buffer[i++] = 65 + (r - 10);
+        else
+            buffer[i++] = 48 + r;
+
+        n = n / base;
+    }
+
+    // if number is 0
+    if (i == 0)
+        buffer[i++] = '0';
+
+    // If base is 10 and value is negative, the resulting string
+    // is preceded with a minus sign (-)
+    // With any other base, value is always considered unsigned
+    if (value < 0 && base == 10)
+        buffer[i++] = '-';
+
+    buffer[i] = '\0'; // null terminate string
+
+    // reverse the string and return it
+    return reverse(buffer, 0, i - 1);
 }

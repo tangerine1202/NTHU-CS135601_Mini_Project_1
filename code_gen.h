@@ -7,18 +7,18 @@ void codeGenerate(BTNode *);
 void initReg();
 Register *generateAsmCode(BTNode *);
 Register *getUnusedReg();
-void setReg(Register *, int);
+void setRegByInt(Register *, int);
+void setRegByAddr(Register *, int);
+void setRegByReg(Register *, Register *);
+void setRegByRegWithOp(Register *, Register *, char *);
+void setAddrByReg(int, Register *);
 void returnReg(Register *);
-int getAddr(char *);
-int getAddrVal(int);
-int getAddrAssigned(int);
-void setAddr(int, int);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);
 void MOV_REG_INT(Register *, int);
-void MOV_REG_ADDR(Register *, int, char *, int);
-void MOV_ADDR_REG(int, Register *, char *, int);
+void MOV_REG_ADDR(Register *, int, char *, int, int);
+void MOV_ADDR_REG(int, Register *, char *, int, int);
 
 void ADD_REG_REG(Register *, Register *);
 void SUB_REG_REG(Register *, Register *);

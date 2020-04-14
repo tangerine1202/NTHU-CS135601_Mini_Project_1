@@ -12,7 +12,7 @@ char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
 int sbcount = 0;
 
-int getval(void)
+int getValFromLexeme(void)
 {
     int i, retval, found;
 
@@ -49,7 +49,7 @@ int getval(void)
     return retval;
 }
 
-int setval(char *str, int val)
+int setSbVal(char *str, int val)
 {
     int i, retval;
     i = 0;
@@ -67,31 +67,194 @@ int setval(char *str, int val)
     return retval;
 }
 
-/* create a node without any child.*/
-BTNode *makeNode(TokenSet tok, const char *lexe)
+/* factor := INT | ID | ID ASSIGN expr | ADD_SUB INT | ADD_SUB ID | LPAREN expr RPAREN */
+BTNode *factor(void)
 {
-    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
-    strcpy(node->lexeme, lexe);
-    node->data = tok;
-    node->val = 0;
-    node->weight = 1;
-    node->left = NULL;
-    node->right = NULL;
-    return node;
+    BTNode *retp = NULL;
+    char tmpstr[MAXLEN];
+
+    if (match(INT))
+    {
+        retp = makeNode(INT, getLexeme());
+        retp->val = getValFromLexeme();
+        advance();
+    }
+    else if (match(ID))
+    {
+        BTNode *left = makeNode(ID, getLexeme());
+        left->val = getValFromLexeme();
+        strcpy(tmpstr, getLexeme()); // FIXME: why copy lexeme of ID variable ?
+        advance();
+        if (match(ASSIGN))
+        {
+            retp = makeNode(ASSIGN, getLexeme());
+            advance();
+            retp->left = left;
+            retp->right = expr();
+        }
+        else
+        {
+            retp = left;
+        }
+    }
+    else if (match(ADDSUB))
+    {
+        strcpy(tmpstr, getLexeme());
+        advance();
+        if (match(ID) || match(INT))
+        {
+            retp = makeNode(ADDSUB, tmpstr);
+            if (match(ID))
+                retp->right = makeNode(ID, getLexeme());
+            else
+                retp->right = makeNode(INT, getLexeme());
+            retp->right->val = getValFromLexeme();
+            retp->left = makeNode(INT, "0");
+            retp->left->val = 0;
+            advance();
+        }
+        else if (match(LPAREN))
+        {
+            retp = makeNode(ADDSUB, tmpstr);
+            advance();
+            retp->right = expr();
+            retp->left = makeNode(INT, "0");
+            retp->left->val = 0;
+            if (match(RPAREN))
+                advance();
+            else
+                error(MISPAREN);
+        }
+        else
+            error(NOTNUMID);
+    }
+    else if (match(ORANDXOR))
+    {
+        error(FACROT_ORANDXOR);
+    }
+    else if (match(LPAREN))
+    {
+        advance();
+        retp = expr();
+        if (match(RPAREN))
+            advance();
+        else
+            error(MISPAREN);
+    }
+    else
+        error(NOTNUMID);
+    return retp;
 }
 
-void updateNodeWeight(BTNode *node)
+/* term := factor term_tail */
+BTNode *term(void)
 {
-    int lw, rw;
-    if (node->left == NULL)
-        lw = 0;
+    BTNode *node;
+
+    node = factor();
+
+    return term_tail(node);
+}
+
+/* term_tail := MUL_DIV factor term_tail|NiL */
+BTNode *term_tail(BTNode *left)
+{
+    BTNode *node;
+
+    if (match(MULDIV))
+    {
+        node = makeNode(MULDIV, getLexeme());
+        advance();
+
+        node->left = left;
+        node->right = factor();
+
+        return term_tail(node);
+    }
     else
-        lw = node->left->weight;
-    if (node->right == NULL)
-        rw = 0;
+        return left;
+}
+
+/* expr := term expr_tail */
+BTNode *expr(void)
+{
+    BTNode *node;
+
+    node = term();
+
+    return expr_tail(node);
+}
+
+/* expr_tail := ADD_SUB_AND_OR_XOR term expr_tail | NiL */
+BTNode *expr_tail(BTNode *left)
+{
+    BTNode *node;
+
+    if (match(ADDSUB))
+    {
+        node = makeNode(ADDSUB, getLexeme());
+        advance();
+
+        node->left = left;
+        node->right = term();
+
+        return expr_tail(node);
+    }
+    else if (match(ORANDXOR))
+    {
+        node = makeNode(ORANDXOR, getLexeme());
+        advance();
+
+        node->left = left;
+        node->right = term();
+
+        return expr_tail(node);
+    }
     else
-        rw = node->right->weight;
-    node->weight = lw + 1 + rw;
+        return left;
+}
+
+/* statement := END | expr END */
+void statement(void)
+{
+    BTNode *retp;
+
+    if (match(ENDFILE))
+    {
+        /* TODO: warp into
+            fn codeGenerator() 
+        */
+
+        // TODO: optimize
+        // write x,y,z to r0,r1,r2
+        for (int i = 0; i < 3; i++)
+        {
+            char c[2];
+            c[0] = (char)('x' + i);
+            c[1] = '\0';
+            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)), getAddrUnknownVal(getAddr(c)));
+            sbcount++;
+        }
+
+        /* warp end */
+
+        EXIT_INSTRUCTION(0);
+        exit(0);
+    }
+    else if (match(END))
+    {
+        advance();
+    }
+    else
+    {
+        retp = expr();
+        if (match(END))
+        {
+            evaluate(retp);
+
+            advance();
+        }
+    }
 }
 
 TokenSet getToken(void)
@@ -183,6 +346,10 @@ TokenSet getToken(void)
         return UNKNOWN;
     }
 }
+char *getLexeme(void)
+{
+    return lexeme;
+}
 
 void advance(void)
 {
@@ -196,199 +363,14 @@ int match(TokenSet token)
     return token == lookahead;
 }
 
-char *getLexeme(void)
+BTNode *makeNode(TokenSet tok, const char *lexe)
 {
-    return lexeme;
-}
-
-/* factor := INT | ID | ID ASSIGN expr | ADD_SUB INT | ADD_SUB ID | LPAREN expr RPAREN */
-BTNode *factor(void)
-{
-    BTNode *retp = NULL;
-    char tmpstr[MAXLEN];
-
-    if (match(INT))
-    {
-        retp = makeNode(INT, getLexeme());
-        retp->val = getval();
-        advance();
-    }
-    else if (match(ID))
-    {
-        BTNode *left = makeNode(ID, getLexeme());
-        left->val = getval();
-        strcpy(tmpstr, getLexeme()); // FIXME: why copy lexeme of ID variable ?
-        advance();
-        if (match(ASSIGN))
-        {
-            retp = makeNode(ASSIGN, getLexeme());
-            advance();
-            retp->left = left;
-            retp->right = expr();
-            updateNodeWeight(retp);
-        }
-        else
-        {
-            retp = left;
-        }
-    }
-    else if (match(ADDSUB))
-    {
-        strcpy(tmpstr, getLexeme());
-        advance();
-        if (match(ID) || match(INT))
-        {
-            retp = makeNode(ADDSUB, tmpstr);
-            if (match(ID))
-                retp->right = makeNode(ID, getLexeme());
-            else
-                retp->right = makeNode(INT, getLexeme());
-            retp->right->val = getval();
-            retp->left = makeNode(INT, "0");
-            retp->left->val = 0;
-            updateNodeWeight(retp);
-            advance();
-        }
-        else if (match(LPAREN))
-        {
-            retp = makeNode(ADDSUB, tmpstr);
-            advance();
-            retp->right = expr();
-            retp->left = makeNode(INT, "0");
-            retp->left->val = 0;
-            updateNodeWeight(retp);
-            if (match(RPAREN))
-                advance();
-            else
-                error(MISPAREN);
-        }
-        else
-            error(NOTNUMID);
-    }
-    else if (match(ORANDXOR)) //TODO: Does this condition exist?
-    {
-        error(DEBUG_FACROT_ORANDXOR);
-    }
-    else if (match(LPAREN))
-    {
-        advance();
-        retp = expr();
-        // updateNodeWeight(retp); //FIXME: necessary? i don't think so
-        if (match(RPAREN))
-            advance();
-        else
-            error(MISPAREN);
-    }
-    else
-        error(NOTNUMID);
-    return retp;
-}
-
-/* term := factor term_tail */
-BTNode *term(void)
-{
-    BTNode *node;
-
-    node = factor();
-
-    return term_tail(node);
-}
-
-/* term_tail := MUL_DIV factor term_tail|NiL */
-BTNode *term_tail(BTNode *left)
-{
-    BTNode *node;
-
-    if (match(MULDIV))
-    {
-        node = makeNode(MULDIV, getLexeme());
-        advance();
-
-        node->left = left;
-        node->right = factor();
-        updateNodeWeight(node);
-
-        return term_tail(node);
-    }
-    else
-        return left;
-}
-
-/* expr := term expr_tail */
-BTNode *expr(void)
-{
-    BTNode *node;
-
-    node = term();
-
-    return expr_tail(node);
-}
-
-/* expr_tail := ADD_SUB_AND_OR_XOR term expr_tail | NiL */
-BTNode *expr_tail(BTNode *left)
-{
-    BTNode *node;
-
-    if (match(ADDSUB))
-    {
-        node = makeNode(ADDSUB, getLexeme());
-        advance();
-
-        node->left = left;
-        node->right = term();
-        updateNodeWeight(node);
-
-        return expr_tail(node);
-    }
-    else if (match(ORANDXOR))
-    {
-        node = makeNode(ORANDXOR, getLexeme());
-        advance();
-
-        node->left = left;
-        node->right = term();
-        updateNodeWeight(node);
-
-        return expr_tail(node);
-    }
-    else
-        return left;
-}
-
-/* statement := END | expr END */
-void statement(void)
-{
-    BTNode *retp;
-
-    if (match(ENDFILE))
-    {
-        // TODO: optimize
-        // write x,y,z to r0,r1,r2
-        for (int i = 0; i < 3; i++)
-        {
-            char c[2];
-            c[0] = (char)('x' + i);
-            c[1] = '\0';
-            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)));
-            sbcount++;
-        }
-
-        EXIT_INSTRUCTION(0);
-        exit(0);
-    }
-    else if (match(END))
-    {
-
-        advance();
-    }
-    else
-    {
-        retp = expr();
-        if (match(END))
-        {
-            evaluate(retp);
-
-            advance();
-        }
-    }
+    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
+    strcpy(node->lexeme, lexe);
+    node->token = tok;
+    node->val = 0;
+    node->weight = 1;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
 }
