@@ -12,6 +12,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "struct_vars.h"
 #include "lexer_parser.h"
 #include "code_gen.h"
 #include "helpful.h"
@@ -30,7 +31,6 @@ void initReg()
     char *regname;
     for (int i = 0; i < MAXREG; i++)
     {
-        reg[i].id = i;
         reg[i].val = 0;
         reg[i].used = 0;
         reg[i].name[0] = 'r';

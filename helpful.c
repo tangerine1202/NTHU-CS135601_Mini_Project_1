@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "struct_vars.h"
 #include "lexer_parser.h"
 #include "code_gen.h"
 #include "helpful.h"

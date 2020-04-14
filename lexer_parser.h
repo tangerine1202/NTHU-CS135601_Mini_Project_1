@@ -1,3 +1,5 @@
+// #include "type_vars.h"
+
 #ifndef LEXER_PARSER_H
 #define LEXER_PARSER_H
 
@@ -21,45 +23,6 @@ everything is an expression
 	factor    	:= INT | ADD_SUB INT | ADD_SUB ID | ID ASSIGN expr| ID | LPAREN expr RPAREN
                         (for negative number e.g. (-1), (-3*2))
 */
-
-#define MAXLEN 256
-#define TBLSIZE 64
-
-typedef enum
-{
-    UNKNOWN,
-    END,
-    INT,
-    ID,
-    ORANDXOR,
-    ADDSUB,
-    MULDIV,
-    ASSIGN,
-    LPAREN,
-    RPAREN,
-    ENDFILE
-} TokenSet;
-
-typedef struct
-{
-    char name[MAXLEN];
-    int val;
-    int assigned;
-} Symbol;
-
-typedef struct _Node
-{
-    char lexeme[MAXLEN];
-    TokenSet data;
-    int val;
-    int weight;
-    struct _Node *left, *right;
-} BTNode;
-
-extern TokenSet lookahead;
-extern char lexeme[MAXLEN];
-extern Symbol sbtable[TBLSIZE];
-extern int sbcount;
 
 BTNode *factor(void);
 BTNode *term(void);

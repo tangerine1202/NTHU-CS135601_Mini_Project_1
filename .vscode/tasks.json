@@ -10,8 +10,8 @@
       "args": [
         "-g",
         "${relativeFile}",
-        "lexer_and_paser.c",
-        "code_generator.c",
+        "lexer_parser.c",
+        "code_gen.c",
         "instruction.c",
         "helpful.c",
         "-I",
