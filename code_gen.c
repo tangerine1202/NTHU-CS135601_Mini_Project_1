@@ -66,8 +66,16 @@ Register *generateAsmCode(BTNode *root)
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            lreg = generateAsmCode(root->left);
-            rreg = generateAsmCode(root->right);
+            if (root->left->weight >= root->right->weight)
+            {
+                lreg = generateAsmCode(root->left);
+                rreg = generateAsmCode(root->right);
+            }
+            else
+            {
+                rreg = generateAsmCode(root->right);
+                lreg = generateAsmCode(root->left);
+            }
             if (strcmp(root->lexeme, "+") == 0)
                 ADD_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "-") == 0)

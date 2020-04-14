@@ -257,19 +257,6 @@ void statement(void)
     }
 }
 
-void updateNodeWeight(BTNode *node)
-{
-    int lw, rw;
-    if (node->left == NULL)
-        lw = 0;
-    else
-        lw = node->left->weight;
-    if (node->right == NULL)
-        rw = 0;
-    else
-        rw = node->right->weight;
-    node->weight = lw + 1 + rw;
-}
 TokenSet getToken(void)
 {
     /*

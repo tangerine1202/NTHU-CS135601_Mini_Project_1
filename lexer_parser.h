@@ -33,7 +33,6 @@ BTNode *expr(void);
 BTNode *expr_tail(BTNode *);
 void statement(void);
 
-void updateNodeWeight(BTNode *);
 TokenSet getToken(void);
 char *getLexeme(void);
 void advance(void);

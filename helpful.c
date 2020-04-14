@@ -220,6 +220,9 @@ void error(ErrorType errorNum)
         case NULL_VALUE:
             printf("Calculate with NULL value\n");
             break;
+        case NULL_NODE:
+            printf("Read null Node\n");
+            break;
         }
     }
     EXIT_INSTRUCTION(1);
@@ -274,4 +277,13 @@ int getAddrAssigned(int addr)
     if (i < 0 || i >= sbcount)
         error(WRONG_ADDR);
     return sbtable[i].assigned;
+}
+
+int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+int min(int a, int b)
+{
+    return a < b ? a : b;
 }

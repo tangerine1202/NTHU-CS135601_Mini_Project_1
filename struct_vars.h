@@ -19,6 +19,7 @@ typedef enum
     UNEXPECT_TOKENTYPE,
     WRONG_ADDR,
     NULL_VALUE,
+    NULL_NODE,
     NULL_REGISTER, // maybe deprecate
 } ErrorType;
 

@@ -14,4 +14,7 @@ int getAddrVal(int);
 int getAddrUnknownVal(int);
 int getAddrAssigned(int);
 
+int max(int, int);
+int min(int, int);
+
 #endif

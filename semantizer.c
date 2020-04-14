@@ -30,9 +30,12 @@ Value *semantize(BTNode *root)
             addr = getAddr(root->lexeme);
             if (!getAddrAssigned(addr))
                 error(VAR_UNASSIGNED);
+
+            updateNodeWeight(root);
             retval = makeValueNode(getAddrVal(addr), getAddrUnknownVal(addr));
             break;
         case INT:
+            updateNodeWeight(root);
             retval = makeValueNode(root->val, 0);
             break;
         case ASSIGN:
@@ -45,6 +48,8 @@ Value *semantize(BTNode *root)
             rval = semantize(root->right);
             if (rval == NULL)
                 error(NULL_VALUE);
+
+            updateNodeWeight(root);
 
             setAddrVal(addr, rval);
             free(rval);
@@ -65,6 +70,8 @@ Value *semantize(BTNode *root)
             if (lval == NULL || rval == NULL)
                 error(NULL_VALUE);
 
+            updateNodeWeight(root);
+
             calculateValWithOp(lval, rval, root->lexeme);
             retval = lval;
             free(rval);
@@ -83,6 +90,19 @@ Value *makeValueNode(int val, int unknonw_val)
     retval->val = val;
     retval->unknown_val = unknonw_val;
     return retval;
+}
+
+void updateNodeWeight(BTNode *node)
+{
+    int lw, rw;
+    if (node->left == NULL && node->right == NULL)
+        node->weight = 0;
+    else if (node->left == NULL || node->right == NULL)
+        error(NULL_NODE);
+    else if (node->left->weight == node->right->weight)
+        node->weight = node->left->weight + 1;
+    else
+        node->weight = max(node->left->weight, node->right->weight);
 }
 
 void calculateValWithOp(Value *lval, Value *rval, char *op)
