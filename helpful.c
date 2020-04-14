@@ -49,60 +49,7 @@ void evaluate(BTNode *root)
 
     else
     {
-        /* 
-            fn sematizer(BTNode *) 
-            # Basic
-            - check assigned
-            - check multiple assign
-            - check div_by_zero (calculate value)
-            - combine evaluate() features
-                - debuging output 
-        */
-
         semantic_val = semantize(root);
-
-        /* TODO: 
-            fn codeGenerator(BTNode *)
-            # Basic
-            - doesn't calculate value
-            - drop expr without '='
-            - add weight priority features
-            
-            ## Key Idea
-            - left hand side is x,y,z
-                - generate code and store in r0,r1,r2
-                - store rootNode
-            -left hand side is other vars
-                - store rootNode in Symbol
-            
-            - 
-
-            # Implement 
-            - r0, r1, r2 for x,y,z
-            - r3~r6 (at least four register) dynamic register
-            - r7 unused / dynamic register
-
-            # Advance 
-            - count Symbol used times, and calculate useful cache
-
-            # Deprecated idea
-            ## save nodeTree in Symbol
-                - left hand side is x,y,z
-                    two choose:
-                    1. 
-                        - generate code immediately (WRONG!)
-                            1. x = y+z
-                            4. a = x+12 (suspend)
-                            2. x = 3
-                            3. y = a + x (or x + a)
-                        - store assign->right
-                        - free `assign` and `assign->left` node 
-
-                    2. symbol->node = assignNode
-                
-                - left hand side is other vars
-                    - store `assign->right` and free `assign` and `assign->left` node
-        */
 
         codeGenerate(root);
     }

@@ -1,15 +1,3 @@
-/* 
-### Reg Cache
-- add lexeme
-- add eraseable
-- find cache
-    - [1] used cache
-    - [0] find unused reg
-        - [0] erase eraseable reg
-
-### Multiple assign is illegal
-*/
-
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
