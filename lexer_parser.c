@@ -12,7 +12,7 @@ char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
 int sbcount = 0;
 
-int getval(void)
+int getValFromLexeme(void)
 {
     int i, retval, found;
 
@@ -49,7 +49,7 @@ int getval(void)
     return retval;
 }
 
-int setval(char *str, int val)
+int setSbVal(char *str, int val)
 {
     int i, retval;
     i = 0;
@@ -67,125 +67,6 @@ int setval(char *str, int val)
     return retval;
 }
 
-/* create a node without any child.*/
-BTNode *makeNode(TokenSet tok, const char *lexe)
-{
-    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
-    strcpy(node->lexeme, lexe);
-    node->data = tok;
-    node->val = 0;
-    node->left = NULL;
-    node->right = NULL;
-    return node;
-}
-
-TokenSet getToken(void)
-{
-    /*
-    - set `lexeme[]`
-    - return Token
-    */
-    int i;
-    char c;
-
-    while ((c = fgetc(stdin)) == ' ' || c == '\t')
-        ; // 忽略空白字元
-
-    if (isdigit(c))
-    {
-        lexeme[0] = c;
-        c = fgetc(stdin);
-        i = 1;
-        while (isdigit(c) && i < MAXLEN)
-        {
-            lexeme[i] = c;
-            ++i;
-            c = fgetc(stdin);
-        }
-        ungetc(c, stdin);
-        lexeme[i] = '\0';
-        return INT;
-    }
-    else if (c == '+' || c == '-')
-    {
-        lexeme[0] = c;
-        lexeme[1] = '\0';
-        return ADDSUB;
-    }
-    else if (c == '|' || c == '&' || c == '^')
-    {
-        lexeme[0] = c;
-        lexeme[1] = '\0';
-        return ORANDXOR;
-    }
-    else if (c == '*' || c == '/')
-    {
-        lexeme[0] = c;
-        lexeme[1] = '\0';
-        return MULDIV;
-    }
-    else if (c == '\n')
-    {
-        lexeme[0] = '\0';
-        return END;
-    }
-    else if (c == '=')
-    {
-        strcpy(lexeme, "=");
-        return ASSIGN;
-    }
-    else if (c == '(')
-    {
-        strcpy(lexeme, "(");
-        return LPAREN;
-    }
-    else if (c == ')')
-    {
-        strcpy(lexeme, ")");
-        return RPAREN;
-    }
-    else if (isalpha(c) || c == '_')
-    {
-        lexeme[0] = c;
-        c = fgetc(stdin);
-        i = 1;
-        while (isalpha(c) || isdigit(c) || c == '_')
-        {
-            lexeme[i] = c;
-            ++i;
-            c = fgetc(stdin);
-        }
-        ungetc(c, stdin);
-        lexeme[i] = '\0';
-        return ID;
-    }
-    else if (c == EOF)
-    {
-        return ENDFILE;
-    }
-    else
-    {
-        return UNKNOWN;
-    }
-}
-
-void advance(void)
-{
-    lookahead = getToken();
-}
-
-int match(TokenSet token)
-{
-    if (lookahead == UNKNOWN)
-        advance();
-    return token == lookahead;
-}
-
-char *getLexeme(void)
-{
-    return lexeme;
-}
-
 /* factor := INT | ID | ID ASSIGN expr | ADD_SUB INT | ADD_SUB ID | LPAREN expr RPAREN */
 BTNode *factor(void)
 {
@@ -195,13 +76,13 @@ BTNode *factor(void)
     if (match(INT))
     {
         retp = makeNode(INT, getLexeme());
-        retp->val = getval();
+        retp->val = getValFromLexeme();
         advance();
     }
     else if (match(ID))
     {
         BTNode *left = makeNode(ID, getLexeme());
-        left->val = getval();
+        left->val = getValFromLexeme();
         strcpy(tmpstr, getLexeme()); // FIXME: why copy lexeme of ID variable ?
         advance();
         if (match(ASSIGN))
@@ -227,7 +108,7 @@ BTNode *factor(void)
                 retp->right = makeNode(ID, getLexeme());
             else
                 retp->right = makeNode(INT, getLexeme());
-            retp->right->val = getval();
+            retp->right->val = getValFromLexeme();
             retp->left = makeNode(INT, "0");
             retp->left->val = 0;
             advance();
@@ -347,7 +228,7 @@ void statement(void)
             char c[2];
             c[0] = (char)('x' + i);
             c[1] = '\0';
-            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)));
+            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)), getAddrUnknownVal(getAddr(c)));
             sbcount++;
         }
 
@@ -369,4 +250,135 @@ void statement(void)
             advance();
         }
     }
+}
+
+void updateNodeWeight(BTNode *node)
+{
+    int lw, rw;
+    if (node->left == NULL)
+        lw = 0;
+    else
+        lw = node->left->weight;
+    if (node->right == NULL)
+        rw = 0;
+    else
+        rw = node->right->weight;
+    node->weight = lw + 1 + rw;
+}
+TokenSet getToken(void)
+{
+    /*
+    - set `lexeme[]`
+    - return Token
+    */
+    int i;
+    char c;
+
+    while ((c = fgetc(stdin)) == ' ' || c == '\t')
+        ; // 忽略空白字元
+
+    if (isdigit(c))
+    {
+        lexeme[0] = c;
+        c = fgetc(stdin);
+        i = 1;
+        while (isdigit(c) && i < MAXLEN)
+        {
+            lexeme[i] = c;
+            ++i;
+            c = fgetc(stdin);
+        }
+        ungetc(c, stdin);
+        lexeme[i] = '\0';
+        return INT;
+    }
+    else if (c == '+' || c == '-')
+    {
+        lexeme[0] = c;
+        lexeme[1] = '\0';
+        return ADDSUB;
+    }
+    else if (c == '|' || c == '&' || c == '^')
+    {
+        lexeme[0] = c;
+        lexeme[1] = '\0';
+        return ORANDXOR;
+    }
+    else if (c == '*' || c == '/')
+    {
+        lexeme[0] = c;
+        lexeme[1] = '\0';
+        return MULDIV;
+    }
+    else if (c == '\n')
+    {
+        lexeme[0] = '\0';
+        return END;
+    }
+    else if (c == '=')
+    {
+        strcpy(lexeme, "=");
+        return ASSIGN;
+    }
+    else if (c == '(')
+    {
+        strcpy(lexeme, "(");
+        return LPAREN;
+    }
+    else if (c == ')')
+    {
+        strcpy(lexeme, ")");
+        return RPAREN;
+    }
+    else if (isalpha(c) || c == '_')
+    {
+        lexeme[0] = c;
+        c = fgetc(stdin);
+        i = 1;
+        while (isalpha(c) || isdigit(c) || c == '_')
+        {
+            lexeme[i] = c;
+            ++i;
+            c = fgetc(stdin);
+        }
+        ungetc(c, stdin);
+        lexeme[i] = '\0';
+        return ID;
+    }
+    else if (c == EOF)
+    {
+        return ENDFILE;
+    }
+    else
+    {
+        return UNKNOWN;
+    }
+}
+char *getLexeme(void)
+{
+    return lexeme;
+}
+
+void advance(void)
+{
+    lookahead = getToken();
+}
+
+int match(TokenSet token)
+{
+    if (lookahead == UNKNOWN)
+        advance();
+    return token == lookahead;
+}
+
+BTNode *makeNode(TokenSet tok, const char *lexe)
+{
+    BTNode *node = (BTNode *)malloc(sizeof(BTNode));
+    strcpy(node->lexeme, lexe);
+    node->data = tok;
+    node->val = 0;
+    node->weight = 1;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
 }

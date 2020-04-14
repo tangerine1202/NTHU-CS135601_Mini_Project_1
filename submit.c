@@ -63,7 +63,7 @@ typedef struct
 {
     int id;
     int val;
-    int used;
+    int occupied;
     char name[3]; // r0, r1, r2...
 } Register;
 
@@ -88,8 +88,8 @@ TokenSet getToken(void);
 void advance(void);
 int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
-int getval(void);
-int setval(char *, int);
+int getValFromLexeme(void);
+int setSbVal(char *, int);
 void updateNodeWeight(BTNode *);
 
 /* ----- fn: helpful.h ----- */
@@ -172,7 +172,7 @@ int main(void)
 
 /* ----- lexer_parser.c ----- */
 
-int getval(void)
+int getValFromLexeme(void)
 {
     int i, retval, found;
 
@@ -209,7 +209,7 @@ int getval(void)
     return retval;
 }
 
-int setval(char *str, int val)
+int setSbVal(char *str, int val)
 {
     int i, retval;
     i = 0;
@@ -370,13 +370,13 @@ BTNode *factor(void)
     if (match(INT))
     {
         retp = makeNode(INT, getLexeme());
-        retp->val = getval();
+        retp->val = getValFromLexeme();
         advance();
     }
     else if (match(ID))
     {
         BTNode *left = makeNode(ID, getLexeme());
-        left->val = getval();
+        left->val = getValFromLexeme();
         strcpy(tmpstr, getLexeme()); // FIXME: why copy lexeme of ID variable ?
         advance();
         if (match(ASSIGN))
@@ -403,7 +403,7 @@ BTNode *factor(void)
                 retp->right = makeNode(ID, getLexeme());
             else
                 retp->right = makeNode(INT, getLexeme());
-            retp->right->val = getval();
+            retp->right->val = getValFromLexeme();
             retp->left = makeNode(INT, "0");
             retp->left->val = 0;
             updateNodeWeight(retp);
@@ -612,7 +612,7 @@ int evaluateTree(BTNode *root)
             else if (strcmp(root->lexeme, "^") == 0)
                 retval = lv ^ rv;
             else if (strcmp(root->lexeme, "=") == 0)
-                retval = setval(root->left->lexeme, rv);
+                retval = setSbVal(root->left->lexeme, rv);
             break;
         default:
             retval = 0;
@@ -705,7 +705,7 @@ void initReg()
     for (int i = 0; i < MAXREG; i++)
     {
         reg[i].val = 0;
-        reg[i].used = 0;
+        reg[i].occupied = 0;
         reg[i].name[0] = 'r';
         reg[i].name[1] = '0' + i;
         reg[i].name[2] = '\0';
@@ -812,7 +812,7 @@ Register *getUnusedReg()
     Register *retreg = NULL;
     for (int i = 0; i < MAXREG; i++)
     {
-        if (!(reg[i].used))
+        if (!(reg[i].occupied))
         {
             retreg = &(reg[i]);
             break;
@@ -826,13 +826,13 @@ Register *getUnusedReg()
 void setReg(Register *reg, int val)
 {
     reg->val = val;
-    reg->used = 1;
+    reg->occupied = 1;
 }
 
 void returnReg(Register *reg)
 {
     reg->val = 0;
-    reg->used = 0;
+    reg->occupied = 0;
 }
 
 int getAddr(char *str)

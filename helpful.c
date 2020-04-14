@@ -11,7 +11,7 @@ void evaluate(BTNode *root)
 {
     if (DEBUG_MODE)
     {
-        printf("\neval: %d\n", evaluateTree(root));
+        // printf("\neval: %d\n", evaluateTree(root));
         printPrefix(root);
         printf("\n");
         printf("\n");
@@ -71,7 +71,7 @@ int evaluateTree(BTNode *root)
             else if (strcmp(root->lexeme, "^") == 0)
                 retval = lv ^ rv;
             else if (strcmp(root->lexeme, "=") == 0)
-                retval = setval(root->left->lexeme, rv);
+                retval = setSbVal(root->left->lexeme, rv);
             break;
         default:
             retval = 0;
@@ -188,6 +188,9 @@ void error(ErrorType errorNum)
             break;
         case WRONG_ADDR:
             printf("Wrong Address\n");
+            break;
+        case NULL_REGISTER:
+            printf("Null register\n");
             break;
         }
     }
