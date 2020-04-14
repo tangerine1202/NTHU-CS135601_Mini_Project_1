@@ -7,8 +7,6 @@
 #include "code_gen.h"
 #include "helpful.h"
 
-int DEBUG_MODE = 1;
-
 int main(void)
 {
     // freopen("input.txt", "r", stdin);

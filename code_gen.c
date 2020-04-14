@@ -1,15 +1,3 @@
-/* 
-### Reg Cache
-- add lexeme
-- add eraseable
-- find cache
-    - [1] used cache
-    - [0] find unused reg
-        - [0] erase eraseable reg
-
-### Multiple assign is illegal
-*/
-
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -48,7 +36,7 @@ Register *generateAsmCode(BTNode *root)
     int addr;
     if (root != NULL)
     {
-        switch (root->data)
+        switch (root->token)
         {
         case ID:
             addr = getAddr(root->lexeme);
@@ -78,8 +66,16 @@ Register *generateAsmCode(BTNode *root)
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            lreg = generateAsmCode(root->left);
-            rreg = generateAsmCode(root->right);
+            if (root->left->weight >= root->right->weight)
+            {
+                lreg = generateAsmCode(root->left);
+                rreg = generateAsmCode(root->right);
+            }
+            else
+            {
+                rreg = generateAsmCode(root->right);
+                lreg = generateAsmCode(root->left);
+            }
             if (strcmp(root->lexeme, "+") == 0)
                 ADD_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "-") == 0)
@@ -87,12 +83,7 @@ Register *generateAsmCode(BTNode *root)
             else if (strcmp(root->lexeme, "*") == 0)
                 MUL_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "/") == 0)
-            {
-                if (rreg->unknown_val == 0 && rreg->val == 0)
-                    error(DIV_BY_ZERO);
-                else
-                    DIV_REG_REG(lreg, rreg);
-            }
+                DIV_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "|") == 0)
                 OR_REG_REG(lreg, rreg);
             else if (strcmp(root->lexeme, "&") == 0)
@@ -186,54 +177,4 @@ void returnReg(Register *reg)
     reg->val = 0;
     reg->unknown_val = 1;
     reg->occupied = 0;
-}
-
-int getAddr(char *str)
-{
-    int i = 0, retaddr = 0;
-    while (i < sbcount)
-    {
-        if (strcmp(str, sbtable[i].name) == 0)
-        {
-            retaddr = i * 4;
-            break;
-        }
-        else
-            i++;
-    }
-    if (i >= sbcount)
-        error(CANT_GET_ADDR);
-    return retaddr;
-}
-
-char *getAddrName(int addr)
-{
-    int i = addr / 4;
-    if (i < 0 || i >= sbcount)
-        error(WRONG_ADDR);
-    return sbtable[i].name;
-}
-
-int getAddrUnknownVal(int addr)
-{
-    int i = addr / 4;
-    if (i < 0 || i >= sbcount)
-        error(WRONG_ADDR);
-    return sbtable[i].unknown_val;
-}
-
-int getAddrVal(int addr)
-{
-    int i = addr / 4;
-    if (i < 0 || i >= sbcount)
-        error(WRONG_ADDR);
-    return sbtable[i].val;
-}
-
-int getAddrAssigned(int addr)
-{
-    int i = addr / 4;
-    if (i < 0 || i >= sbcount)
-        error(WRONG_ADDR);
-    return sbtable[i].assigned;
 }
