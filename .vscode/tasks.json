@@ -11,6 +11,7 @@
         "-g",
         "${relativeFile}",
         "lexer_parser.c",
+        "semantizer.c",
         "code_gen.c",
         "instruction.c",
         "helpful.c",

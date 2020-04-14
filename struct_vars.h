@@ -11,14 +11,15 @@ typedef enum
     NOTNUMID,
     NOTFOUND,
     RUNOUT,
-    DEBUG_FACROT_ORANDXOR,
+    FACROT_ORANDXOR,
     REG_RUNOUT,
     DIV_BY_ZERO,
     VAR_UNASSIGNED,
     CANT_GET_ADDR,
     UNEXPECT_TOKENTYPE,
     WRONG_ADDR,
-    NULL_REGISTER,
+    NULL_VALUE,
+    NULL_REGISTER, // maybe deprecate
 } ErrorType;
 
 typedef enum
@@ -36,10 +37,16 @@ typedef enum
     ENDFILE
 } TokenSet;
 
+typedef struct
+{
+    int val;
+    int unknown_val;
+} Value;
+
 typedef struct _Node
 {
     char lexeme[MAXLEN];
-    TokenSet data;
+    TokenSet token;
     int val;
     int weight;
     struct _Node *left, *right;

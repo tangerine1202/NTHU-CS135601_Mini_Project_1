@@ -128,9 +128,9 @@ BTNode *factor(void)
         else
             error(NOTNUMID);
     }
-    else if (match(ORANDXOR)) //TODO: Does this condition exist?
+    else if (match(ORANDXOR))
     {
-        error(DEBUG_FACROT_ORANDXOR);
+        error(FACROT_ORANDXOR);
     }
     else if (match(LPAREN))
     {
@@ -221,6 +221,10 @@ void statement(void)
 
     if (match(ENDFILE))
     {
+        /* TODO: warp into
+            fn codeGenerator() 
+        */
+
         // TODO: optimize
         // write x,y,z to r0,r1,r2
         for (int i = 0; i < 3; i++)
@@ -232,12 +236,13 @@ void statement(void)
             sbcount++;
         }
 
+        /* warp end */
+
         EXIT_INSTRUCTION(0);
         exit(0);
     }
     else if (match(END))
     {
-
         advance();
     }
     else
@@ -375,7 +380,7 @@ BTNode *makeNode(TokenSet tok, const char *lexe)
 {
     BTNode *node = (BTNode *)malloc(sizeof(BTNode));
     strcpy(node->lexeme, lexe);
-    node->data = tok;
+    node->token = tok;
     node->val = 0;
     node->weight = 1;
     node->left = NULL;

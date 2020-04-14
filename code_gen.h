@@ -13,11 +13,6 @@ void setRegByReg(Register *, Register *);
 void setRegByRegWithOp(Register *, Register *, char *);
 void setAddrByReg(int, Register *);
 void returnReg(Register *);
-int getAddr(char *);
-char *getAddrName(int);
-int getAddrVal(int);
-int getAddrUnknownVal(int);
-int getAddrAssigned(int);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);

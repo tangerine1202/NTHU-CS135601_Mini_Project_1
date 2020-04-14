@@ -18,7 +18,7 @@ typedef enum
     NOTNUMID,
     NOTFOUND,
     RUNOUT,
-    DEBUG_FACROT_ORANDXOR,
+    FACROT_ORANDXOR,
     REG_RUNOUT,
     DIV_BY_ZERO,
     VAR_UNASSIGNED,
@@ -53,7 +53,7 @@ typedef struct
 typedef struct _Node
 {
     char lexeme[MAXLEN];
-    TokenSet data;
+    TokenSet token;
     int val;
     int weight;
     struct _Node *left, *right;
@@ -232,7 +232,7 @@ BTNode *makeNode(TokenSet tok, const char *lexe)
 {
     BTNode *node = (BTNode *)malloc(sizeof(BTNode));
     strcpy(node->lexeme, lexe);
-    node->data = tok;
+    node->token = tok;
     node->val = 0;
     node->weight = 1;
     node->left = NULL;
@@ -416,7 +416,7 @@ BTNode *factor(void)
     }
     else if (match(ORANDXOR)) //TODO: Does this condition exist?
     {
-        error(DEBUG_FACROT_ORANDXOR);
+        error(FACROT_ORANDXOR);
     }
     else if (match(LPAREN))
     {
@@ -579,7 +579,7 @@ int evaluateTree(BTNode *root)
     int retval = 0, lv, rv;
     if (root != NULL)
     {
-        switch (root->data)
+        switch (root->token)
         {
         case ID:
         case INT:
@@ -661,7 +661,7 @@ void error(ErrorType errorNum)
         case RUNOUT:
             printf("Out of memory\n");
             break;
-        case DEBUG_FACROT_ORANDXOR:
+        case FACROT_ORANDXOR:
             printf("or/and/xor exists in factor\n");
             break;
         case REG_RUNOUT:
@@ -718,7 +718,7 @@ Register *generateAsmCode(BTNode *root)
     int addr;
     if (root != NULL)
     {
-        switch (root->data)
+        switch (root->token)
         {
         case ID:
             addr = getAddr(root->lexeme);

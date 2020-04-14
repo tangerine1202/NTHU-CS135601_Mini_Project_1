@@ -8,4 +8,10 @@ void printTree(BTNode *, int);
 void freeTree(BTNode *);
 void error(ErrorType);
 
+int getAddr(char *);
+char *getAddrName(int);
+int getAddrVal(int);
+int getAddrUnknownVal(int);
+int getAddrAssigned(int);
+
 #endif
