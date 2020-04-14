@@ -17,4 +17,8 @@ int getAddrAssigned(int);
 int max(int, int);
 int min(int, int);
 
+inline void charswap(char *, char *);
+char *reverse(char *, int, int);
+char *itoa(int, char *, int);
+
 #endif
