@@ -18,6 +18,7 @@ typedef enum
     CANT_GET_ADDR,
     UNEXPECT_TOKENTYPE,
     WRONG_ADDR,
+    NULL_REGISTER,
 } ErrorType;
 
 typedef enum
@@ -35,13 +36,6 @@ typedef enum
     ENDFILE
 } TokenSet;
 
-typedef struct
-{
-    char name[MAXLEN];
-    int val;
-    int assigned;
-} Symbol;
-
 typedef struct _Node
 {
     char lexeme[MAXLEN];
@@ -53,9 +47,18 @@ typedef struct _Node
 
 typedef struct
 {
+    char name[MAXLEN];
+    int val;
+    int unknown_val;
+    int assigned;
+} Symbol;
+
+typedef struct
+{
     char name[3]; // r0, r1, r2...
     int val;
-    int used;
+    int unknown_val;
+    int occupied;
 } Register;
 
 extern int DEBUG_MODE;

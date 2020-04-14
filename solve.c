@@ -16,7 +16,10 @@ int main(void)
 
     // init sbtable as unassigned
     for (int i = 0; i < TBLSIZE; i++)
+    {
+        sbtable[i].unknown_val = 1;
         sbtable[i].assigned = 0;
+    }
 
     // initReg
     initReg();
@@ -29,6 +32,7 @@ int main(void)
         c[1] = '\0';
         strcpy(sbtable[sbcount].name, c);
         sbtable[sbcount].val = 0;
+        sbtable[sbcount].unknown_val = 1;
         sbtable[sbcount].assigned = 1;
         sbcount++;
     }
