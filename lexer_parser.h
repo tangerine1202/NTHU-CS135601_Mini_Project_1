@@ -37,6 +37,5 @@ int match(TokenSet);
 BTNode *makeNode(TokenSet, const char *);
 int getval(void);
 int setval(char *, int);
-void updateNodeWeight(BTNode *);
 
 #endif
