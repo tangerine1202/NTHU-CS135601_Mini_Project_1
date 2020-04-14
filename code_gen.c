@@ -13,7 +13,12 @@ void codeGenerate(BTNode *root)
 {
     // TODO: optimize by cache reg (don't need to initReg everytime)
     initReg();
-    generateAsmCode(root);
+    if (root->token == ASSIGN)
+    {
+        generateCode(root);
+    }
+    else if (DEBUG_MODE)
+        printf("Drop statement, since it's not assignment statement\n");
 }
 
 void initReg()
@@ -30,7 +35,7 @@ void initReg()
     }
 }
 
-Register *generateAsmCode(BTNode *root)
+Register *generateCode(BTNode *root)
 {
     Register *retreg = NULL, *lreg, *rreg;
     int addr;
@@ -40,27 +45,20 @@ Register *generateAsmCode(BTNode *root)
         {
         case ID:
             addr = getAddr(root->lexeme);
-            if (!getAddrAssigned(addr))
-                error(VAR_UNASSIGNED);
             retreg = getUnusedReg();
-            MOV_REG_ADDR(retreg, addr, getAddrName(addr), getAddrVal(addr), getAddrUnknownVal(addr));
-            setRegByAddr(retreg, addr);
+            MOV_REG_ADDR(retreg, addr);
             break;
-        // TODO: improve `code generate` oper int int condition
         case INT:
             retreg = getUnusedReg();
             MOV_REG_INT(retreg, root->val);
-            setRegByInt(retreg, root->val);
             break;
         case ASSIGN:
-            // Multiple assign is illegal.
             addr = getAddr(root->left->lexeme);
-            rreg = generateAsmCode(root->right);
+            rreg = generateCode(root->right);
             if (rreg == NULL)
                 error(NULL_REGISTER);
 
-            MOV_ADDR_REG(addr, rreg, getAddrName(addr), getAddrVal(addr), getAddrUnknownVal(addr));
-            setAddrByReg(addr, rreg);
+            MOV_ADDR_REG(addr, rreg);
             returnReg(rreg);
             break;
         case ADDSUB:
@@ -68,13 +66,13 @@ Register *generateAsmCode(BTNode *root)
         case MULDIV:
             if (root->left->weight >= root->right->weight)
             {
-                lreg = generateAsmCode(root->left);
-                rreg = generateAsmCode(root->right);
+                lreg = generateCode(root->left);
+                rreg = generateCode(root->right);
             }
             else
             {
-                rreg = generateAsmCode(root->right);
-                lreg = generateAsmCode(root->left);
+                rreg = generateCode(root->right);
+                lreg = generateCode(root->left);
             }
             if (strcmp(root->lexeme, "+") == 0)
                 ADD_REG_REG(lreg, rreg);
@@ -91,12 +89,11 @@ Register *generateAsmCode(BTNode *root)
             else if (strcmp(root->lexeme, "^") == 0)
                 XOR_REG_REG(lreg, rreg);
 
-            setRegByRegWithOp(lreg, rreg, root->lexeme);
-            retreg = lreg;
             returnReg(rreg);
+            retreg = lreg;
             break;
+
         default:
-            error(UNEXPECT_TOKENTYPE);
             break;
         }
     }
@@ -111,65 +108,13 @@ Register *getUnusedReg()
         if (!(reg[i].occupied))
         {
             retreg = &(reg[i]);
+            retreg->occupied = 1;
             break;
         }
     }
     if (retreg == NULL)
         error(REG_RUNOUT);
     return retreg;
-}
-
-void setRegByInt(Register *reg, int val)
-{
-    reg->val = val;
-    reg->unknown_val = 0;
-    reg->occupied = 1;
-}
-
-void setRegByAddr(Register *reg, int addr)
-{
-    Symbol *sb = &(sbtable[addr / 4]);
-    reg->val = sb->val;
-    reg->unknown_val = sb->unknown_val;
-    reg->occupied = 1;
-}
-
-void setRegByReg(Register *reg1, Register *reg2)
-{
-    reg1->val = reg2->val;
-    reg1->unknown_val = reg2->unknown_val;
-    reg1->occupied = 1;
-}
-
-void setRegByRegWithOp(Register *reg1, Register *reg2, char *op)
-{
-    if (reg1->unknown_val || reg2->unknown_val)
-        reg1->unknown_val = 1;
-    else if (strcmp(op, "+") == 0)
-        reg1->val = reg1->val + reg2->val;
-    else if (strcmp(op, "-") == 0)
-        reg1->val = reg1->val - reg2->val;
-    else if (strcmp(op, "*") == 0)
-        reg1->val = reg1->val * reg2->val;
-    else if (strcmp(op, "/") == 0)
-        reg1->val = reg1->val / reg2->val;
-    else if (strcmp(op, "|") == 0)
-        reg1->val = reg1->val | reg2->val;
-    else if (strcmp(op, "&") == 0)
-        reg1->val = reg1->val & reg2->val;
-    else if (strcmp(op, "^") == 0)
-        reg1->val = reg1->val ^ reg2->val;
-    reg->occupied = 1;
-}
-
-void setAddrByReg(int addr, Register *reg)
-{
-    int i = addr / 4;
-    if (i < 0 || i >= sbcount)
-        error(WRONG_ADDR);
-    sbtable[i].val = reg->val;
-    sbtable[i].unknown_val = reg->unknown_val;
-    sbtable[i].assigned = 1;
 }
 
 void returnReg(Register *reg)
