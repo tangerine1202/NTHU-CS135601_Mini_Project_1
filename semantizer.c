@@ -49,9 +49,9 @@ Value *semantize(BTNode *root)
             if (rval == NULL)
                 error(NULL_VALUE);
 
-            updateNodeWeight(root);
-
             setAddrVal(addr, rval);
+
+            updateNodeWeight(root);
             free(rval);
             break;
         case ADDSUB:
@@ -70,10 +70,16 @@ Value *semantize(BTNode *root)
             if (lval == NULL || rval == NULL)
                 error(NULL_VALUE);
 
-            updateNodeWeight(root);
-
             calculateValWithOp(lval, rval, root->lexeme);
             retval = lval;
+
+            // fn: shortcutOp2Int(BTNode *root, int val)
+            // shortcut op node to int node
+            if (retval->unknown_val == 0)
+                shortcutOpNodeToIntNode(root, retval->val);
+
+            updateNodeWeight(root);
+
             free(rval);
             break;
         default:
@@ -103,6 +109,19 @@ void updateNodeWeight(BTNode *node)
         node->weight = node->left->weight + 1;
     else
         node->weight = max(node->left->weight, node->right->weight);
+}
+
+void shortcutOpNodeToIntNode(BTNode *root, int val)
+{
+    root->token = INT;
+    root->weight = 1;
+    root->val = val;
+
+    // free subNode
+    freeTree(root->left);
+    root->left = NULL;
+    freeTree(root->right);
+    root->right = NULL;
 }
 
 void calculateValWithOp(Value *lval, Value *rval, char *op)
