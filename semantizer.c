@@ -57,16 +57,8 @@ Value *semantize(BTNode *root)
         case ADDSUB:
         case ORANDXOR:
         case MULDIV:
-            if (root->left->weight > root->right->weight)
-            {
-                lval = semantize(root->left);
-                rval = semantize(root->right);
-            }
-            else
-            {
-                rval = semantize(root->right);
-                lval = semantize(root->left);
-            }
+            lval = semantize(root->left);
+            rval = semantize(root->right);
             if (lval == NULL || rval == NULL)
                 error(NULL_VALUE);
 
