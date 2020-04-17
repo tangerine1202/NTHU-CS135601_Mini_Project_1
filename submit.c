@@ -27,6 +27,7 @@ typedef enum
     NULL_VALUE,
     NULL_NODE,
     NULL_REGISTER, // maybe deprecate
+    LEFT_SIDE_OF_ASSIGN_IS_NOT_ID,
 } ErrorType;
 
 typedef enum
@@ -75,13 +76,31 @@ typedef struct
     int occupied;
 } Register;
 
-int DEBUG_MODE;
-
-TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
-int sbcount = 0;
 Register reg[MAXREG];
+TokenSet lookahead = UNKNOWN;
+int sbcount = 0;
+
+int DEBUG_MODE = 0;
+int reg_needed = 0;
+int total_clock_cycle = 0;
+int last_clock_cycle = 0;
+
+void error(ErrorType);
+
+int getAddr(char *);
+char *getAddrName(int);
+int getAddrVal(int);
+int getAddrUnknownVal(int);
+int getAddrAssigned(int);
+
+int max(int, int);
+int min(int, int);
+
+inline void charswap(char *, char *);
+char *reverse(char *, int, int);
+char *itoa(int, char *, int);
 
 /* ----- fn: lexer_parser.h ----- */
 
@@ -107,26 +126,13 @@ int evaluateTree(BTNode *);
 void printPrefix(BTNode *);
 void printTree(BTNode *, int);
 void freeTree(BTNode *);
-void error(ErrorType);
-
-int getAddr(char *);
-char *getAddrName(int);
-int getAddrVal(int);
-int getAddrUnknownVal(int);
-int getAddrAssigned(int);
-
-int max(int, int);
-int min(int, int);
-
-void charswap(char *, char *);
-char *reverse(char *, int, int);
-char *itoa(int, char *, int);
 
 /* ----- fn: semantizer.h ----- */
 
 Value *semantize(BTNode *);
 Value *makeValueNode(int val, int unknonw_val);
 void updateNodeWeight(BTNode *);
+void shortcutOpNodeToIntNode(BTNode *, int);
 void calculateValWithOp(Value *, Value *, char *);
 void setAddrVal(int, Value *);
 
@@ -134,20 +140,15 @@ void setAddrVal(int, Value *);
 
 void codeGenerate(BTNode *);
 void initReg();
-Register *generateAsmCode(BTNode *);
+Register *generateCode(BTNode *);
 Register *getUnusedReg();
-void setRegByInt(Register *, int);
-void setRegByAddr(Register *, int);
-void setRegByReg(Register *, Register *);
-void setRegByRegWithOp(Register *, Register *, char *);
-void setAddrByReg(int, Register *);
 void returnReg(Register *);
 
 // instruction
 void MOV_REG_REG(Register *, Register *);
 void MOV_REG_INT(Register *, int);
-void MOV_REG_ADDR(Register *, int, char *, int, int);
-void MOV_ADDR_REG(int, Register *, char *, int, int);
+void MOV_REG_ADDR(Register *, int);
+void MOV_ADDR_REG(int, Register *);
 
 void ADD_REG_REG(Register *, Register *);
 void SUB_REG_REG(Register *, Register *);
@@ -194,6 +195,7 @@ int main(void)
         sbcount++;
     }
 
+    total_clock_cycle = 0;
     while (1)
     {
         statement();
@@ -423,7 +425,7 @@ void statement(void)
             char c[2];
             c[0] = (char)('x' + i);
             c[1] = '\0';
-            MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)), getAddrUnknownVal(getAddr(c)));
+            MOV_REG_ADDR(&(reg[i]), getAddr(c));
             sbcount++;
         }
 
@@ -565,9 +567,7 @@ BTNode *makeNode(TokenSet tok, const char *lexe)
     node->right = NULL;
     return node;
 }
-
 /* ----- helpful.c ----- */
-
 void evaluate(BTNode *root)
 {
     Value *semantic_val = NULL;
@@ -579,12 +579,14 @@ void evaluate(BTNode *root)
         char buf[10];
         semantic_val = semantize(root);
         if (semantic_val == NULL)
-            printf("null");
+            printf("null\n");
         else
-            printf("%s",
+            printf("%s\n",
                    semantic_val->unknown_val ? "#" : itoa(semantic_val->val, buf, 10));
 
-        printf("\n\n");
+        reg_needed = root->weight;
+        printf("Reg needed: %d\n", reg_needed);
+        printf("\n");
 
         // Statement Prefix representation
         printf("Prefix representation:\n");
@@ -602,6 +604,11 @@ void evaluate(BTNode *root)
         // Asm Code
         codeGenerate(root);
         printf("\n");
+
+        // clock cycle
+        printf("total clock cycle: %d\n", total_clock_cycle - last_clock_cycle);
+        last_clock_cycle = total_clock_cycle;
+
         printf("-------------------\n");
     }
 
@@ -781,6 +788,8 @@ void error(ErrorType errorNum)
         case NULL_NODE:
             printf("Read null Node\n");
             break;
+        case LEFT_SIDE_OF_ASSIGN_IS_NOT_ID:
+            printf("Left hand side of assign is not ID\n");
         }
     }
     EXIT_INSTRUCTION(1);
@@ -847,7 +856,7 @@ int min(int a, int b)
 }
 
 // inline function to swap two numbers
-void charswap(char *x, char *y)
+inline void charswap(char *x, char *y)
 {
     char t = *x;
     *x = *y;
@@ -903,7 +912,6 @@ char *itoa(int value, char *buffer, int base)
 }
 
 /* ----- semantizer.c ----- */
-
 Value *semantize(BTNode *root)
 {
     Value *retval = NULL, *lval, *rval;
@@ -929,15 +937,15 @@ Value *semantize(BTNode *root)
             if (root->left->token == ID)
                 addr = getAddr(root->left->lexeme);
             else
-                error(CANT_GET_ADDR);
+                error(LEFT_SIDE_OF_ASSIGN_IS_NOT_ID);
 
             rval = semantize(root->right);
             if (rval == NULL)
                 error(NULL_VALUE);
 
-            updateNodeWeight(root);
-
             setAddrVal(addr, rval);
+
+            updateNodeWeight(root);
             free(rval);
             break;
         case ADDSUB:
@@ -956,10 +964,16 @@ Value *semantize(BTNode *root)
             if (lval == NULL || rval == NULL)
                 error(NULL_VALUE);
 
-            updateNodeWeight(root);
-
             calculateValWithOp(lval, rval, root->lexeme);
             retval = lval;
+
+            // fn: shortcutOp2Int(BTNode *root, int val)
+            // shortcut op node to int node
+            if (retval->unknown_val == 0)
+                shortcutOpNodeToIntNode(root, retval->val);
+
+            updateNodeWeight(root);
+
             free(rval);
             break;
         default:
@@ -982,7 +996,7 @@ void updateNodeWeight(BTNode *node)
 {
     int lw, rw;
     if (node->left == NULL && node->right == NULL)
-        node->weight = 0;
+        node->weight = 1;
     else if (node->left == NULL || node->right == NULL)
         error(NULL_NODE);
     else if (node->left->weight == node->right->weight)
@@ -991,9 +1005,22 @@ void updateNodeWeight(BTNode *node)
         node->weight = max(node->left->weight, node->right->weight);
 }
 
+void shortcutOpNodeToIntNode(BTNode *root, int val)
+{
+    root->token = INT;
+    root->weight = 1;
+    root->val = val;
+
+    // free subNode
+    freeTree(root->left);
+    root->left = NULL;
+    freeTree(root->right);
+    root->right = NULL;
+}
+
 void calculateValWithOp(Value *lval, Value *rval, char *op)
 {
-    if (rval->unknown_val == 0 && rval->val == 0)
+    if (strcmp(op, "/") == 0 && rval->unknown_val == 0 && rval->val == 0)
         error(DIV_BY_ZERO);
 
     else if (lval->unknown_val || rval->unknown_val)
@@ -1024,13 +1051,18 @@ void setAddrVal(int addr, Value *valnode)
     sbtable[i].assigned = 1;
 }
 
-/* ----- code_generator.c ----- */
+/* ----- code_gen.c ----- */
 
 void codeGenerate(BTNode *root)
 {
     // TODO: optimize by cache reg (don't need to initReg everytime)
     initReg();
-    generateAsmCode(root);
+    if (root->token == ASSIGN)
+    {
+        generateCode(root);
+    }
+    else if (DEBUG_MODE)
+        printf("Drop statement, since it's not assignment statement\n");
 }
 
 void initReg()
@@ -1047,7 +1079,7 @@ void initReg()
     }
 }
 
-Register *generateAsmCode(BTNode *root)
+Register *generateCode(BTNode *root)
 {
     Register *retreg = NULL, *lreg, *rreg;
     int addr;
@@ -1057,27 +1089,20 @@ Register *generateAsmCode(BTNode *root)
         {
         case ID:
             addr = getAddr(root->lexeme);
-            if (!getAddrAssigned(addr))
-                error(VAR_UNASSIGNED);
             retreg = getUnusedReg();
-            MOV_REG_ADDR(retreg, addr, getAddrName(addr), getAddrVal(addr), getAddrUnknownVal(addr));
-            setRegByAddr(retreg, addr);
+            MOV_REG_ADDR(retreg, addr);
             break;
-        // TODO: improve `code generate` oper int int condition
         case INT:
             retreg = getUnusedReg();
             MOV_REG_INT(retreg, root->val);
-            setRegByInt(retreg, root->val);
             break;
         case ASSIGN:
-            // Multiple assign is illegal.
             addr = getAddr(root->left->lexeme);
-            rreg = generateAsmCode(root->right);
+            rreg = generateCode(root->right);
             if (rreg == NULL)
                 error(NULL_REGISTER);
 
-            MOV_ADDR_REG(addr, rreg, getAddrName(addr), getAddrVal(addr), getAddrUnknownVal(addr));
-            setAddrByReg(addr, rreg);
+            MOV_ADDR_REG(addr, rreg);
             returnReg(rreg);
             break;
         case ADDSUB:
@@ -1085,13 +1110,13 @@ Register *generateAsmCode(BTNode *root)
         case MULDIV:
             if (root->left->weight >= root->right->weight)
             {
-                lreg = generateAsmCode(root->left);
-                rreg = generateAsmCode(root->right);
+                lreg = generateCode(root->left);
+                rreg = generateCode(root->right);
             }
             else
             {
-                rreg = generateAsmCode(root->right);
-                lreg = generateAsmCode(root->left);
+                rreg = generateCode(root->right);
+                lreg = generateCode(root->left);
             }
             if (strcmp(root->lexeme, "+") == 0)
                 ADD_REG_REG(lreg, rreg);
@@ -1108,12 +1133,11 @@ Register *generateAsmCode(BTNode *root)
             else if (strcmp(root->lexeme, "^") == 0)
                 XOR_REG_REG(lreg, rreg);
 
-            setRegByRegWithOp(lreg, rreg, root->lexeme);
-            retreg = lreg;
             returnReg(rreg);
+            retreg = lreg;
             break;
+
         default:
-            error(UNEXPECT_TOKENTYPE);
             break;
         }
     }
@@ -1128,6 +1152,7 @@ Register *getUnusedReg()
         if (!(reg[i].occupied))
         {
             retreg = &(reg[i]);
+            retreg->occupied = 1;
             break;
         }
     }
@@ -1136,47 +1161,11 @@ Register *getUnusedReg()
     return retreg;
 }
 
-void setRegByInt(Register *reg, int val)
+void returnReg(Register *reg)
 {
-    reg->val = val;
-    reg->unknown_val = 0;
-    reg->occupied = 1;
-}
-
-void setRegByAddr(Register *reg, int addr)
-{
-    Symbol *sb = &(sbtable[addr / 4]);
-    reg->val = sb->val;
-    reg->unknown_val = sb->unknown_val;
-    reg->occupied = 1;
-}
-
-void setRegByReg(Register *reg1, Register *reg2)
-{
-    reg1->val = reg2->val;
-    reg1->unknown_val = reg2->unknown_val;
-    reg1->occupied = 1;
-}
-
-void setRegByRegWithOp(Register *reg1, Register *reg2, char *op)
-{
-    if (reg1->unknown_val || reg2->unknown_val)
-        reg1->unknown_val = 1;
-    else if (strcmp(op, "+") == 0)
-        reg1->val = reg1->val + reg2->val;
-    else if (strcmp(op, "-") == 0)
-        reg1->val = reg1->val - reg2->val;
-    else if (strcmp(op, "*") == 0)
-        reg1->val = reg1->val * reg2->val;
-    else if (strcmp(op, "/") == 0)
-        reg1->val = reg1->val / reg2->val;
-    else if (strcmp(op, "|") == 0)
-        reg1->val = reg1->val | reg2->val;
-    else if (strcmp(op, "&") == 0)
-        reg1->val = reg1->val & reg2->val;
-    else if (strcmp(op, "^") == 0)
-        reg1->val = reg1->val ^ reg2->val;
-    reg->occupied = 1;
+    reg->val = 0;
+    reg->unknown_val = 1;
+    reg->occupied = 0;
 }
 
 void setAddrByReg(int addr, Register *reg)
@@ -1189,128 +1178,70 @@ void setAddrByReg(int addr, Register *reg)
     sbtable[i].assigned = 1;
 }
 
-void returnReg(Register *reg)
-{
-    reg->val = 0;
-    reg->unknown_val = 1;
-    reg->occupied = 0;
-}
-
 /* ----- instruction.c ----- */
 
 void MOV_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("MOV %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "MOV %s %s\n", reg1->name, reg2->name);
+    printf("MOV %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 void MOV_REG_INT(Register *reg1, int val)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("MOV %s(%s)\t%d\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10), val);
-    else
-        fprintf(stdout, "MOV %s %d\n", reg1->name, val);
+    printf("MOV %s %d\n", reg1->name, val);
+    total_clock_cycle += 10;
 }
-void MOV_REG_ADDR(Register *reg1, int addr2, char *addrname, int addrval, int addrunknown)
+void MOV_REG_ADDR(Register *reg1, int addr2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("MOV %s(%s)\t%s[%d](%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               addrname, addr2, addrunknown ? "#" : itoa(addrval, buf, 10));
-    else
-        fprintf(stdout, "MOV %s [%d]\n", reg1->name, addr2);
+    printf("MOV %s [%d]\n", reg1->name, addr2);
+    total_clock_cycle += 200;
 }
-void MOV_ADDR_REG(int addr1, Register *reg2, char *addrname, int addrval, int addrunknown)
+void MOV_ADDR_REG(int addr1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("MOV %s[%d](%s)\t%s(%s)\n",
-               addrname, addr1, addrunknown ? "#" : itoa(addrval, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "MOV [%d] %s\n", addr1, reg2->name);
+    printf("MOV [%d] %s\n", addr1, reg2->name);
+    total_clock_cycle += 200;
 }
 
 void ADD_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("ADD %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "ADD %s %s\n", reg1->name, reg2->name);
+    printf("ADD %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 void SUB_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("SUB %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "SUB %s %s\n", reg1->name, reg2->name);
+    printf("SUB %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 void MUL_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("MUL %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "MUL %s %s\n", reg1->name, reg2->name);
+    printf("MUL %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 30;
 }
 void DIV_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("DIV %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "DIV %s %s\n", reg1->name, reg2->name);
+    printf("DIV %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 50;
 }
 
 void OR_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("OR %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "OR %s %s\n", reg1->name, reg2->name);
+    printf("OR %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 void AND_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("AND %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "AND %s %s\n", reg1->name, reg2->name);
+    printf("AND %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 void XOR_REG_REG(Register *reg1, Register *reg2)
 {
-    char buf[10];
-    if (DEBUG_MODE)
-        printf("XOR %s(%s)\t%s(%s)\n",
-               reg1->name, reg1->unknown_val ? "#" : itoa(reg1->val, buf, 10),
-               reg2->name, reg2->unknown_val ? "#" : itoa(reg2->val, buf, 10));
-    else
-        fprintf(stdout, "XOR %s %s\n", reg1->name, reg2->name);
+    printf("XOR %s %s\n", reg1->name, reg2->name);
+    total_clock_cycle += 10;
 }
 
 void EXIT_INSTRUCTION(int exitcode)
 {
     printf("EXIT %d\n", exitcode);
+    total_clock_cycle += 20;
+    if (DEBUG_MODE)
+        printf("\ntotal clock cycle: %d\n", total_clock_cycle);
 }
