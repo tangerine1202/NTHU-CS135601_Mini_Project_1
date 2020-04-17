@@ -65,8 +65,6 @@ typedef struct
 typedef struct
 {
     char name[3]; // r0, r1, r2...
-    int val;
-    int unknown_val;
     int occupied;
 } Register;
 

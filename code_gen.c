@@ -26,8 +26,6 @@ void initReg()
     char *regname;
     for (int i = 0; i < MAXREG; i++)
     {
-        reg[i].val = 0;
-        reg[i].unknown_val = 1;
         reg[i].occupied = 0;
         reg[i].name[0] = 'r';
         reg[i].name[1] = '0' + i;
@@ -119,7 +117,5 @@ Register *getUnusedReg()
 
 void returnReg(Register *reg)
 {
-    reg->val = 0;
-    reg->unknown_val = 1;
     reg->occupied = 0;
 }
