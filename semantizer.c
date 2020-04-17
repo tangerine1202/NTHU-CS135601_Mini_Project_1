@@ -43,7 +43,7 @@ Value *semantize(BTNode *root)
             if (root->left->token == ID)
                 addr = getAddr(root->left->lexeme);
             else
-                error(CANT_GET_ADDR);
+                error(LEFT_SIDE_OF_ASSIGN_IS_NOT_ID);
 
             rval = semantize(root->right);
             if (rval == NULL)

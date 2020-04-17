@@ -233,6 +233,8 @@ void error(ErrorType errorNum)
         case NULL_NODE:
             printf("Read null Node\n");
             break;
+        case LEFT_SIDE_OF_ASSIGN_IS_NOT_ID:
+            printf("Left hand side of assign is not ID\n");
         }
     }
     EXIT_INSTRUCTION(1);
