@@ -233,7 +233,6 @@ void statement(void)
             char c[2];
             c[0] = (char)('x' + i);
             c[1] = '\0';
-            // MOV_REG_ADDR(&(reg[i]), getAddr(c), c, getAddrVal(getAddr(c)), getAddrUnknownVal(getAddr(c)));
             MOV_REG_ADDR(&(reg[i]), getAddr(c));
             sbcount++;
         }

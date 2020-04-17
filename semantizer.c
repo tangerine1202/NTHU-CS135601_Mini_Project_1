@@ -107,7 +107,7 @@ void updateNodeWeight(BTNode *node)
 
 void calculateValWithOp(Value *lval, Value *rval, char *op)
 {
-    if (rval->unknown_val == 0 && rval->val == 0)
+    if (strcmp(op, "/") == 0 && rval->unknown_val == 0 && rval->val == 0)
         error(DIV_BY_ZERO);
 
     else if (lval->unknown_val || rval->unknown_val)
