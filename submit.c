@@ -1023,8 +1023,31 @@ void calculateValWithOp(Value *lval, Value *rval, char *op)
     if (strcmp(op, "/") == 0 && rval->unknown_val == 0 && rval->val == 0)
         error(DIV_BY_ZERO);
 
-    else if (lval->unknown_val || rval->unknown_val)
+    else if (lval->unknown_val && rval->unknown_val)
         lval->unknown_val = 1;
+
+    // unknown to known condition
+    else if (lval->unknown_val)
+    {
+        if ((strcmp(op, "*") == 0 && rval->val == 0) || (strcmp(op, "&") == 0 && rval->val == 0))
+        {
+            lval->unknown_val = 0;
+            lval->val = 0;
+        }
+        else
+            lval->unknown_val = 1;
+    }
+    else if (rval->unknown_val)
+    {
+        if ((strcmp(op, "*") == 0 && lval->val == 0) || (strcmp(op, "&") == 0 && lval->val == 0))
+        {
+            lval->unknown_val = 0;
+            lval->val = 0;
+        }
+        else
+            lval->unknown_val = 1;
+    }
+
     else if (strcmp(op, "+") == 0)
         lval->val = lval->val + rval->val;
     else if (strcmp(op, "-") == 0)
