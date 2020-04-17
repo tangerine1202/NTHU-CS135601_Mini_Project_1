@@ -35,6 +35,7 @@ int main(void)
         sbcount++;
     }
 
+    total_clock_cycle = 0;
     while (1)
     {
         statement();

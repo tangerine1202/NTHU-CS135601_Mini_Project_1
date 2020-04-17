@@ -69,12 +69,15 @@ typedef struct
     int occupied;
 } Register;
 
-extern int DEBUG_MODE;
-
 extern TokenSet lookahead;
 extern char lexeme[MAXLEN];
 extern Symbol sbtable[TBLSIZE];
 extern int sbcount;
 extern Register reg[MAXREG];
+
+extern int DEBUG_MODE;
+extern int reg_needed;
+extern int total_clock_cycle;
+extern int last_clock_cycle;
 
 #endif

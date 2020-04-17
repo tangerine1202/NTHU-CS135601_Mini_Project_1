@@ -11,6 +11,7 @@ TokenSet lookahead = UNKNOWN;
 char lexeme[MAXLEN];
 Symbol sbtable[TBLSIZE];
 int sbcount = 0;
+int total_clock_cycle = 0;
 
 int getValFromLexeme(void)
 {

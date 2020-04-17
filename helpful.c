@@ -10,6 +10,8 @@
 #include "helpful.h"
 
 int DEBUG_MODE = 1;
+int reg_needed;
+int last_clock_cycle = 0;
 
 void evaluate(BTNode *root)
 {
@@ -27,7 +29,8 @@ void evaluate(BTNode *root)
             printf("%s\n",
                    semantic_val->unknown_val ? "#" : itoa(semantic_val->val, buf, 10));
 
-        printf("Reg needed: %d(+1)\n", root->weight);
+        reg_needed = root->weight;
+        printf("Reg needed: %d(+1)\n", reg_needed);
         printf("\n");
 
         // Statement Prefix representation
@@ -46,6 +49,11 @@ void evaluate(BTNode *root)
         // Asm Code
         codeGenerate(root);
         printf("\n");
+
+        // clock cycle
+        printf("total clock cycle: %d\n", total_clock_cycle - last_clock_cycle);
+        last_clock_cycle = total_clock_cycle;
+
         printf("-------------------\n");
     }
 
