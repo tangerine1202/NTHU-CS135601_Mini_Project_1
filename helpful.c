@@ -30,7 +30,7 @@ void evaluate(BTNode *root)
                    semantic_val->unknown_val ? "#" : itoa(semantic_val->val, buf, 10));
 
         reg_needed = root->weight;
-        printf("Reg needed: %d(+1)\n", reg_needed);
+        printf("Reg needed: %d\n", reg_needed);
         printf("\n");
 
         // Statement Prefix representation

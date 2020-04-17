@@ -96,7 +96,7 @@ void updateNodeWeight(BTNode *node)
 {
     int lw, rw;
     if (node->left == NULL && node->right == NULL)
-        node->weight = 0;
+        node->weight = 1;
     else if (node->left == NULL || node->right == NULL)
         error(NULL_NODE);
     else if (node->left->weight == node->right->weight)
