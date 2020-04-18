@@ -22,6 +22,7 @@ typedef enum
     NULL_NODE,
     NULL_REGISTER, // maybe deprecate
     LEFT_SIDE_OF_ASSIGN_IS_NOT_ID,
+    NO_ASSIGN_TOKEN,
 } ErrorType;
 
 typedef enum

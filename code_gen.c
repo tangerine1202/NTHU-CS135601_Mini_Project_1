@@ -17,8 +17,8 @@ void codeGenerate(BTNode *root)
     {
         generateCode(root);
     }
-    else if (DEBUG_MODE)
-        printf("Drop statement, since it's not assignment statement\n");
+    else
+        error(NO_ASSIGN_TOKEN);
 }
 
 void initReg()

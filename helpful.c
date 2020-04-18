@@ -235,10 +235,13 @@ void error(ErrorType errorNum)
             break;
         case LEFT_SIDE_OF_ASSIGN_IS_NOT_ID:
             printf("Left hand side of assign is not ID\n");
+            break;
+        case NO_ASSIGN_TOKEN:
+            printf("There should be exact one '=' in statement\n");
         }
+        EXIT_INSTRUCTION(1);
+        exit(0);
     }
-    EXIT_INSTRUCTION(1);
-    exit(0);
 }
 
 int getAddr(char *str)
