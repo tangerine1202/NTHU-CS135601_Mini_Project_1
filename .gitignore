@@ -8,6 +8,7 @@ Spec.pptx
 *.pdf
 
 todo.md
+report/*
 
 solve.exe
 input.txt
