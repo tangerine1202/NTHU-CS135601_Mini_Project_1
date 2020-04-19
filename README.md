@@ -2,6 +2,12 @@
 
 I2P(II) mini project 1 - Simple Calculator Assembly code generator
 
+## 運行
+
+- master, testing_master：多檔案架構，run solve.c
+- submit, testing_submit：單檔案架構，run submit.c
+- （單檔案架構中除 submit.c 有維護外，其他皆不保證版本及能否運行，反之亦然）
+
 ## 程式架構
 
 ### Struct
